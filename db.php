@@ -1,6 +1,6 @@
 <?php
 $host = 'localhost';
-$dbname = 'safariv3';
+$dbname = 'safariv2';
 $username = 'root';
 $password = '';
 

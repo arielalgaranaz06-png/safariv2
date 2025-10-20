@@ -782,6 +782,70 @@ foreach ($todos_productos as $p) {
                 overflow: hidden;
             }
         }
+        /* ESTILOS PARA REPORTES */
+.reporte-resumen {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.reporte-turno {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border-left: 5px solid #3498db;
+}
+
+.reporte-cajero {
+    background: white;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.reporte-detalle {
+    background: #fff3cd;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #ffeaa7;
+}
+
+.resumen-item {
+    text-align: center;
+    padding: 15px;
+}
+
+.resumen-valor {
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+.resumen-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* Loading spinner */
+.spinner-reporte {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
     </style>
 </head>
 <body>
@@ -890,243 +954,299 @@ foreach ($todos_productos as $p) {
                 <?php endif; ?>
             </div>
 
-            <!-- SECCIÓN CAJA -->
-            <div class="section-content active" id="section-caja">
-                <?php if (!$caja_abierta): ?>
-                    <!-- CAJA CERRADA - FORMULARIO DE APERTURA -->
-                    <div class="caja-status caja-cerrada">
-                        <div class="status-icon">🔒</div>
-                        <div class="status-text">CAJA CERRADA</div>
-                        <p style="color: #7f8c8d; font-size: 1.1rem;">No hay una caja abierta actualmente</p>
-                    </div>
+        <!-- SECCIÓN CAJA -->
+<div class="section-content active" id="section-caja">
+    <?php if (!$caja_abierta): ?>
+        <!-- CAJA CERRADA - FORMULARIO DE APERTURA -->
+        <div class="caja-status caja-cerrada">
+            <div class="status-icon">🔒</div>
+            <div class="status-text">CAJA CERRADA</div>
+            <p style="color: #7f8c8d; font-size: 1.1rem;">No hay una caja abierta actualmente</p>
+        </div>
 
-                    <div class="apertura-form">
-                        <div class="form-header">
-                            <h2>🏦 Apertura de Caja</h2>
-                            <p style="color: #7f8c8d;">Complete los datos para abrir la caja del turno</p>
-                        </div>
-
-                        <form id="formAperturaCaja">
-                            <!-- SELECCIÓN DE TURNO -->
-                            <h4 style="margin-bottom: 15px; color: #2c3e50;">Seleccionar Turno</h4>
-                            <div class="turno-selector">
-                                <label class="turno-option" for="turnoMedioDia">
-                                    <input type="radio" name="turno" id="turnoMedioDia" value="medio_dia" required>
-                                    <div class="turno-icon">☀️</div>
-                                    <div class="turno-nombre">MEDIO DÍA</div>
-                                    <div class="turno-horario">12:00 - 15:00</div>
-                                </label>
-                                
-                                <label class="turno-option" for="turnoNoche">
-                                    <input type="radio" name="turno" id="turnoNoche" value="noche" required>
-                                    <div class="turno-icon">🌙</div>
-                                    <div class="turno-nombre">NOCHE</div>
-                                    <div class="turno-horario">19:00 - 23:00</div>
-                                </label>
-                            </div>
-
-                            <!-- MONEDAS -->
-                            <div class="denominaciones-section">
-                                <div class="denominaciones-header">
-                                    🪙 MONEDAS
-                                </div>
-                                <div class="denominaciones-grid">
-                                    <div class="denominacion-item" id="denom-m1">
-                                        <div class="denominacion-header">
-                                            <span class="denominacion-valor">1 Bs</span>
-                                            <label class="toggle-switch">
-                                                <input type="checkbox" onchange="toggleDenominacion('m1')" checked>
-                                                <span class="toggle-slider"></span>
-                                            </label>
-                                        </div>
-                                        <input type="number" class="cantidad-input" id="cant-m1" 
-                                               placeholder="Cantidad" min="0" value="0" 
-                                               oninput="calcularSubtotal('m1', 1)">
-                                        <div class="subtotal-denominacion" id="subtotal-m1">Bs. 0.00</div>
-                                    </div>
-
-                                    <div class="denominacion-item" id="denom-m2">
-                                        <div class="denominacion-header">
-                                            <span class="denominacion-valor">2 Bs</span>
-                                            <label class="toggle-switch">
-                                                <input type="checkbox" onchange="toggleDenominacion('m2')" checked>
-                                                <span class="toggle-slider"></span>
-                                            </label>
-                                        </div>
-                                        <input type="number" class="cantidad-input" id="cant-m2" 
-                                               placeholder="Cantidad" min="0" value="0" 
-                                               oninput="calcularSubtotal('m2', 2)">
-                                        <div class="subtotal-denominacion" id="subtotal-m2">Bs. 0.00</div>
-                                    </div>
-
-                                    <div class="denominacion-item" id="denom-m5">
-                                        <div class="denominacion-header">
-                                            <span class="denominacion-valor">5 Bs</span>
-                                            <label class="toggle-switch">
-                                                <input type="checkbox" onchange="toggleDenominacion('m5')" checked>
-                                                <span class="toggle-slider"></span>
-                                            </label>
-                                        </div>
-                                        <input type="number" class="cantidad-input" id="cant-m5" 
-                                               placeholder="Cantidad" min="0" value="0" 
-                                               oninput="calcularSubtotal('m5', 5)">
-                                        <div class="subtotal-denominacion" id="subtotal-m5">Bs. 0.00</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- BILLETES -->
-                            <div class="denominaciones-section">
-                                <div class="denominaciones-header">
-                                    💵 BILLETES
-                                </div>
-                                <div class="denominaciones-grid">
-                                    <div class="denominacion-item" id="denom-b10">
-                                        <div class="denominacion-header">
-                                            <span class="denominacion-valor">10 Bs</span>
-                                            <label class="toggle-switch">
-                                                <input type="checkbox" onchange="toggleDenominacion('b10')" checked>
-                                                <span class="toggle-slider"></span>
-                                            </label>
-                                        </div>
-                                        <input type="number" class="cantidad-input" id="cant-b10" 
-                                               placeholder="Cantidad" min="0" value="0" 
-                                               oninput="calcularSubtotal('b10', 10)">
-                                        <div class="subtotal-denominacion" id="subtotal-b10">Bs. 0.00</div>
-                                    </div>
-
-                                    <div class="denominacion-item" id="denom-b20">
-                                        <div class="denominacion-header">
-                                            <span class="denominacion-valor">20 Bs</span>
-                                            <label class="toggle-switch">
-                                                <input type="checkbox" onchange="toggleDenominacion('b20')" checked>
-                                                <span class="toggle-slider"></span>
-                                            </label>
-                                        </div>
-                                        <input type="number" class="cantidad-input" id="cant-b20" 
-                                               placeholder="Cantidad" min="0" value="0" 
-                                               oninput="calcularSubtotal('b20', 20)">
-                                        <div class="subtotal-denominacion" id="subtotal-b20">Bs. 0.00</div>
-                                    </div>
-
-                                    <div class="denominacion-item" id="denom-b50">
-                                        <div class="denominacion-header">
-                                            <span class="denominacion-valor">50 Bs</span>
-                                            <label class="toggle-switch">
-                                                <input type="checkbox" onchange="toggleDenominacion('b50')" checked>
-                                                <span class="toggle-slider"></span>
-                                            </label>
-                                        </div>
-                                        <input type="number" class="cantidad-input" id="cant-b50" 
-                                               placeholder="Cantidad" min="0" value="0" 
-                                               oninput="calcularSubtotal('b50', 50)">
-                                        <div class="subtotal-denominacion" id="subtotal-b50">Bs. 0.00</div>
-                                    </div>
-
-                                    <div class="denominacion-item" id="denom-b100">
-                                        <div class="denominacion-header">
-                                            <span class="denominacion-valor">100 Bs</span>
-                                            <label class="toggle-switch">
-                                                <input type="checkbox" onchange="toggleDenominacion('b100')" checked>
-                                                <span class="toggle-slider"></span>
-                                            </label>
-                                        </div>
-                                        <input type="number" class="cantidad-input" id="cant-b100" 
-                                               placeholder="Cantidad" min="0" value="0" 
-                                               oninput="calcularSubtotal('b100', 100)">
-                                        <div class="subtotal-denominacion" id="subtotal-b100">Bs. 0.00</div>
-                                    </div>
-
-                                    <div class="denominacion-item" id="denom-b200">
-                                        <div class="denominacion-header">
-                                            <span class="denominacion-valor">200 Bs</span>
-                                            <label class="toggle-switch">
-                                                <input type="checkbox" onchange="toggleDenominacion('b200')" checked>
-                                                <span class="toggle-slider"></span>
-                                            </label>
-                                        </div>
-                                        <input type="number" class="cantidad-input" id="cant-b200" 
-                                               placeholder="Cantidad" min="0" value="0" 
-                                               oninput="calcularSubtotal('b200', 200)">
-                                        <div class="subtotal-denominacion" id="subtotal-b200">Bs. 0.00</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- TOTAL -->
-                            <div class="total-apertura">
-                                <div class="label">MONTO INICIAL DE CAJA</div>
-                                <div class="amount" id="totalApertura">Bs. 0.00</div>
-                            </div>
-
-                            <button type="submit" class="btn-abrir-caja" id="btnAbrirCaja">
-                                🔓 ABRIR CAJA
-                            </button>
-                        </form>
-                    </div>
-
-                <?php else: ?>
-                    <!-- CAJA ABIERTA -->
-                    <div class="caja-status caja-abierta">
-                        <div class="status-icon">🔓</div>
-                        <div class="status-text">CAJA ABIERTA</div>
-                        <p style="color: #7f8c8d; font-size: 1.1rem;">
-                            Turno: <?php echo strtoupper(str_replace('_', ' ', $caja_abierta['turno'])); ?> | 
-                            Apertura: <?php echo date('H:i', strtotime($caja_abierta['fecha_apertura'])); ?>
-                        </p>
-                    </div>
-
-                    <div class="caja-info">
-                        <h3 style="margin-bottom: 20px; color: #2c3e50;">Información de Caja</h3>
-                        <div class="info-grid">
-                            <div class="info-card">
-                                <div class="info-label">Monto Inicial</div>
-                                <div class="info-value">Bs. <?php echo number_format($caja_abierta['monto_inicial'], 2); ?></div>
-                            </div>
-                            <div class="info-card">
-                                <div class="info-label">Ventas</div>
-                                <div class="info-value">Bs. <?php 
-                                    $stmt_ventas = $pdo->prepare("SELECT COALESCE(SUM(total), 0) as total_ventas FROM pedidos WHERE estado = 'pagado' AND DATE(fecha_pedido) = CURDATE()");
-                                    $stmt_ventas->execute();
-                                    $ventas = $stmt_ventas->fetch(PDO::FETCH_ASSOC);
-                                    echo number_format($ventas['total_ventas'], 2);
-                                ?></div>
-                            </div>
-                            <div class="info-card">
-                                <div class="info-label">Efectivo en Caja</div>
-                                <div class="info-value">Bs. <?php 
-                                    echo number_format($caja_abierta['monto_inicial'] + $ventas['total_ventas'], 2);
-                                ?></div>
-                            </div>
-                            <div class="info-card">
-                                <div class="info-label">Turno</div>
-                                <div class="info-value"><?php echo strtoupper(str_replace('_', ' ', $caja_abierta['turno'])); ?></div>
-                            </div>
-                        </div>
-
-                        <div style="margin-top: 30px; text-align: center;">
-                            <button class="btn-cerrar-caja" onclick="cerrarCaja()">
-                                🔒 CERRAR CAJA
-                            </button>
-                        </div>
-                    </div>
-                <?php endif; ?>
+        <div class="apertura-form">
+            <div class="form-header">
+                <h2>🏦 Apertura de Caja</h2>
+                <p style="color: #7f8c8d;">Complete los datos para abrir la caja del turno</p>
             </div>
 
-            <!-- SECCIÓN REPORTES (Placeholder) -->
-            <div class="section-content" id="section-reportes">
-                <h2>📊 Reportes</h2>
-                <p style="color: #7f8c8d; padding: 40px; text-align: center;">Módulo en desarrollo...</p>
+            <form id="formAperturaCaja">
+                <!-- SELECCIÓN DE TURNO -->
+                <h4 style="margin-bottom: 15px; color: #2c3e50;">Seleccionar Turno</h4>
+                <div class="turno-selector">
+                    <label class="turno-option" for="turnoMedioDia">
+                        <input type="radio" name="turno" id="turnoMedioDia" value="mañana" required>
+                        <div class="turno-icon">☀️</div>
+                        <div class="turno-nombre">MAÑANA</div>
+                        <div class="turno-horario">12:00 - 16:00</div>
+                    </label>
+                    
+                    <label class="turno-option" for="turnoNoche">
+                        <input type="radio" name="turno" id="turnoNoche" value="noche" required>
+                        <div class="turno-icon">🌙</div>
+                        <div class="turno-nombre">NOCHE</div>
+                        <div class="turno-horario">19:00 - 00:00</div>
+                    </label>
+                </div>
+
+                <!-- MONEDAS -->
+                <div class="denominaciones-section">
+                    <div class="denominaciones-header">
+                        🪙 MONEDAS
+                    </div>
+                    <div class="denominaciones-grid">
+                        <div class="denominacion-item" id="denom-m1">
+                            <div class="denominacion-header">
+                                <span class="denominacion-valor">1 Bs</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" onchange="toggleDenominacion('m1')" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <input type="number" class="cantidad-input" id="cant-m1" 
+                                   placeholder="Cantidad" min="0" value="0" 
+                                   oninput="calcularSubtotal('m1', 1)">
+                            <div class="subtotal-denominacion" id="subtotal-m1">Bs. 0.00</div>
+                        </div>
+
+                        <div class="denominacion-item" id="denom-m2">
+                            <div class="denominacion-header">
+                                <span class="denominacion-valor">2 Bs</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" onchange="toggleDenominacion('m2')" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <input type="number" class="cantidad-input" id="cant-m2" 
+                                   placeholder="Cantidad" min="0" value="0" 
+                                   oninput="calcularSubtotal('m2', 2)">
+                            <div class="subtotal-denominacion" id="subtotal-m2">Bs. 0.00</div>
+                        </div>
+
+                        <div class="denominacion-item" id="denom-m5">
+                            <div class="denominacion-header">
+                                <span class="denominacion-valor">5 Bs</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" onchange="toggleDenominacion('m5')" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <input type="number" class="cantidad-input" id="cant-m5" 
+                                   placeholder="Cantidad" min="0" value="0" 
+                                   oninput="calcularSubtotal('m5', 5)">
+                            <div class="subtotal-denominacion" id="subtotal-m5">Bs. 0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BILLETES -->
+                <div class="denominaciones-section">
+                    <div class="denominaciones-header">
+                        💵 BILLETES
+                    </div>
+                    <div class="denominaciones-grid">
+                        <div class="denominacion-item" id="denom-b10">
+                            <div class="denominacion-header">
+                                <span class="denominacion-valor">10 Bs</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" onchange="toggleDenominacion('b10')" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <input type="number" class="cantidad-input" id="cant-b10" 
+                                   placeholder="Cantidad" min="0" value="0" 
+                                   oninput="calcularSubtotal('b10', 10)">
+                            <div class="subtotal-denominacion" id="subtotal-b10">Bs. 0.00</div>
+                        </div>
+
+                        <div class="denominacion-item" id="denom-b20">
+                            <div class="denominacion-header">
+                                <span class="denominacion-valor">20 Bs</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" onchange="toggleDenominacion('b20')" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <input type="number" class="cantidad-input" id="cant-b20" 
+                                   placeholder="Cantidad" min="0" value="0" 
+                                   oninput="calcularSubtotal('b20', 20)">
+                            <div class="subtotal-denominacion" id="subtotal-b20">Bs. 0.00</div>
+                        </div>
+
+                        <div class="denominacion-item" id="denom-b50">
+                            <div class="denominacion-header">
+                                <span class="denominacion-valor">50 Bs</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" onchange="toggleDenominacion('b50')" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <input type="number" class="cantidad-input" id="cant-b50" 
+                                   placeholder="Cantidad" min="0" value="0" 
+                                   oninput="calcularSubtotal('b50', 50)">
+                            <div class="subtotal-denominacion" id="subtotal-b50">Bs. 0.00</div>
+                        </div>
+
+                        <div class="denominacion-item" id="denom-b100">
+                            <div class="denominacion-header">
+                                <span class="denominacion-valor">100 Bs</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" onchange="toggleDenominacion('b100')" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <input type="number" class="cantidad-input" id="cant-b100" 
+                                   placeholder="Cantidad" min="0" value="0" 
+                                   oninput="calcularSubtotal('b100', 100)">
+                            <div class="subtotal-denominacion" id="subtotal-b100">Bs. 0.00</div>
+                        </div>
+
+                        <div class="denominacion-item" id="denom-b200">
+                            <div class="denominacion-header">
+                                <span class="denominacion-valor">200 Bs</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" onchange="toggleDenominacion('b200')" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <input type="number" class="cantidad-input" id="cant-b200" 
+                                   placeholder="Cantidad" min="0" value="0" 
+                                   oninput="calcularSubtotal('b200', 200)">
+                            <div class="subtotal-denominacion" id="subtotal-b200">Bs. 0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TOTAL -->
+                <div class="total-apertura">
+                    <div class="label">MONTO INICIAL DE CAJA</div>
+                    <div class="amount" id="totalApertura">Bs. 0.00</div>
+                </div>
+
+                <button type="submit" class="btn-abrir-caja" id="btnAbrirCaja">
+                    🔓 ABRIR CAJA
+                </button>
+            </form>
+        </div>
+
+    <?php else: ?>
+        <!-- CAJA ABIERTA -->
+        <div class="caja-status caja-abierta">
+            <div class="status-icon">🔓</div>
+            <div class="status-text">CAJA ABIERTA</div>
+            <p style="color: #7f8c8d; font-size: 1.1rem;">
+                Turno: <?php echo strtoupper($caja_abierta['turno']); ?> | 
+                Apertura: <?php echo date('H:i', strtotime($caja_abierta['fecha_apertura'])); ?>
+            </p>
+        </div>
+
+        <div class="caja-info">
+            <h3 style="margin-bottom: 20px; color: #2c3e50;">Información de Caja - Turno <?php echo strtoupper($caja_abierta['turno']); ?></h3>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-label">Monto Inicial</div>
+                    <div class="info-value">Bs. <?php echo number_format($caja_abierta['monto_inicial'], 2); ?></div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Ventas del Turno</div>
+                    <div class="info-value">Bs. <?php 
+                        $stmt_ventas = $pdo->prepare("SELECT COALESCE(SUM(total), 0) as total_ventas FROM pedidos WHERE estado = 'pagado' AND caja_id = ?");
+                        $stmt_ventas->execute([$caja_abierta['id']]);
+                        $ventas = $stmt_ventas->fetch(PDO::FETCH_ASSOC);
+                        echo number_format($ventas['total_ventas'], 2);
+                    ?></div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Efectivo en Caja</div>
+                    <div class="info-value">Bs. <?php 
+                        $efectivo_caja = $caja_abierta['monto_inicial'] + $ventas['total_ventas'];
+                        echo number_format($efectivo_caja, 2);
+                    ?></div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Pedidos del Turno</div>
+                    <div class="info-value"><?php 
+                        $stmt_pedidos = $pdo->prepare("SELECT COUNT(*) as total FROM pedidos WHERE caja_id = ?");
+                        $stmt_pedidos->execute([$caja_abierta['id']]);
+                        $total_pedidos = $stmt_pedidos->fetch(PDO::FETCH_ASSOC);
+                        echo $total_pedidos['total'];
+                    ?></div>
+                </div>
             </div>
 
-            <!-- SECCIÓN CONFIGURACIÓN (Placeholder) -->
-            <div class="section-content" id="section-configuracion">
-                <h2>⚙️ Configuración</h2>
-                <p style="color: #7f8c8d; padding: 40px; text-align: center;">Módulo en desarrollo...</p>
+            <div style="margin-top: 30px; text-align: center;">
+                <button class="btn-cerrar-caja" onclick="cerrarCaja()">
+                    🔒 CERRAR CAJA
+                </button>
+            </div>
+        </div>
+    <?php endif; ?>
+</div>
+                <!--FIN CAJA -->
+          <!-- SECCIÓN REPORTES -->
+<!-- SECCIÓN REPORTES -->
+<div class="section-content" id="section-reportes">
+    <h2 style="margin-bottom: 20px; color: #2c3e50;">📊 Reportes de Ventas</h2>
+    
+    <!-- FILTROS -->
+    <div class="caja-info" style="margin-bottom: 20px;">
+        <div class="form-header" style="margin-bottom: 20px;">
+            <h4>🔍 Filtros del Reporte</h4>
+            <p style="color: #7f8c8d; margin: 0;">Seleccione los criterios para generar el reporte</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">📅 Fecha</label>
+                <input type="date" class="cantidad-input" id="filtroFecha" 
+                       value="<?php echo date('Y-m-d'); ?>">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">🕐 Turno</label>
+                <select class="cantidad-input" id="filtroTurno">
+                    <option value="todos">Todos los turnos</option>
+                    <option value="mañana">🌅 Turno Mañana</option>
+                    <option value="noche">🌙 Turno Noche</option>
+                </select>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">👤 Cajero</label>
+                <select class="cantidad-input" id="filtroCajero">
+                    <option value="todos">Todos los cajeros</option>
+                    <?php
+                    $stmt_cajeros = $pdo->prepare("SELECT id, nombre FROM usuarios WHERE rol = 'cajero' ORDER BY nombre");
+                    $stmt_cajeros->execute();
+                    $cajeros = $stmt_cajeros->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($cajeros as $cajero) {
+                        echo "<option value='{$cajero['id']}'>{$cajero['nombre']}</option>";
+                    }
+                    ?>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <button type="button" class="btn-abrir-caja" onclick="generarReporte()" 
+                        style="margin-top: 10px;">
+                    📈 GENERAR REPORTE
+                </button>
             </div>
         </div>
     </div>
 
+    <!-- RESULTADOS DEL REPORTE -->
+    <div id="resultadoReporte">
+        <div class="caja-status" style="border-color: #3498db;">
+            <div class="status-icon">📊</div>
+            <div class="status-text" style="color: #3498db;">REPORTES DE VENTAS</div>
+            <p style="color: #7f8c8d; font-size: 1.1rem;">Seleccione los filtros y genere un reporte</p>
+            <p style="color: #95a5a6; font-size: 0.9rem;">Los resultados aparecerán aquí</p>
+        </div>
+    </div>
+</div>
+ <!-- FIN SECCIÓN REPORTES -->
+
+           <!-- SECCIÓN CONFIGURACIÓN -->
     <!-- MODAL PAGO -->
     <div class="modal-overlay" id="modalPago">
         <div class="modal-content">
@@ -1255,7 +1375,7 @@ foreach ($todos_productos as $p) {
             });
         });
         
-        // GESTIÓN DE DENOMINACIONES
+        // GESTIÓN DE DENOMINACIONES - CÓDIGO CORREGIDO
         function toggleDenominacion(tipo) {
             const checkbox = event.target;
             const item = document.getElementById('denom-' + tipo);
@@ -1264,12 +1384,14 @@ foreach ($todos_productos as $p) {
             if (checkbox.checked) {
                 item.classList.remove('disabled');
                 input.disabled = false;
+                input.value = 0; // Reset a 0 cuando se activa
             } else {
                 item.classList.add('disabled');
                 input.disabled = true;
-                input.value = 0;
+                input.value = 0; // Asegurar que sea 0 cuando se desactiva
                 calcularSubtotal(tipo, parseFloat(tipo.replace(/[a-z]/g, '')));
             }
+            calcularTotalApertura(); // Actualizar total
         }
         
         function calcularSubtotal(tipo, valor) {
@@ -1282,100 +1404,131 @@ foreach ($todos_productos as $p) {
         function calcularTotalApertura() {
             let total = 0;
             
-            // Monedas
-            const m1 = (parseFloat(document.getElementById('cant-m1').value) || 0) * 1;
-            const m2 = (parseFloat(document.getElementById('cant-m2').value) || 0) * 2;
-            const m5 = (parseFloat(document.getElementById('cant-m5').value) || 0) * 5;
-            
-            // Billetes
-            const b10 = (parseFloat(document.getElementById('cant-b10').value) || 0) * 10;
-            const b20 = (parseFloat(document.getElementById('cant-b20').value) || 0) * 20;
-            const b50 = (parseFloat(document.getElementById('cant-b50').value) || 0) * 50;
-            const b100 = (parseFloat(document.getElementById('cant-b100').value) || 0) * 100;
-            const b200 = (parseFloat(document.getElementById('cant-b200').value) || 0) * 200;
-            
-            total = m1 + m2 + m5 + b10 + b20 + b50 + b100 + b200;
+            // Solo sumar las denominaciones que no están desactivadas
+            if (!document.getElementById('denom-m1').classList.contains('disabled')) {
+                total += (parseFloat(document.getElementById('cant-m1').value) || 0) * 1;
+            }
+            if (!document.getElementById('denom-m2').classList.contains('disabled')) {
+                total += (parseFloat(document.getElementById('cant-m2').value) || 0) * 2;
+            }
+            if (!document.getElementById('denom-m5').classList.contains('disabled')) {
+                total += (parseFloat(document.getElementById('cant-m5').value) || 0) * 5;
+            }
+            if (!document.getElementById('denom-b10').classList.contains('disabled')) {
+                total += (parseFloat(document.getElementById('cant-b10').value) || 0) * 10;
+            }
+            if (!document.getElementById('denom-b20').classList.contains('disabled')) {
+                total += (parseFloat(document.getElementById('cant-b20').value) || 0) * 20;
+            }
+            if (!document.getElementById('denom-b50').classList.contains('disabled')) {
+                total += (parseFloat(document.getElementById('cant-b50').value) || 0) * 50;
+            }
+            if (!document.getElementById('denom-b100').classList.contains('disabled')) {
+                total += (parseFloat(document.getElementById('cant-b100').value) || 0) * 100;
+            }
+            if (!document.getElementById('denom-b200').classList.contains('disabled')) {
+                total += (parseFloat(document.getElementById('cant-b200').value) || 0) * 200;
+            }
             
             document.getElementById('totalApertura').textContent = 'Bs. ' + total.toFixed(2);
         }
         
-        // APERTURA DE CAJA
-        document.getElementById('formAperturaCaja')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const turno = document.querySelector('input[name="turno"]:checked')?.value;
-            
-            if (!turno) {
-                alert('Debe seleccionar un turno');
-                return;
-            }
-            
-            const denominaciones = {
-                m1: { 
-                    activo: !document.getElementById('denom-m1').classList.contains('disabled'),
-                    cantidad: parseInt(document.getElementById('cant-m1').value) || 0,
-                    valor: 1
-                },
-                m2: { 
-                    activo: !document.getElementById('denom-m2').classList.contains('disabled'),
-                    cantidad: parseInt(document.getElementById('cant-m2').value) || 0,
-                    valor: 2
-                },
-                m5: { 
-                    activo: !document.getElementById('denom-m5').classList.contains('disabled'),
-                    cantidad: parseInt(document.getElementById('cant-m5').value) || 0,
-                    valor: 5
-                },
-                b10: { 
-                    activo: !document.getElementById('denom-b10').classList.contains('disabled'),
-                    cantidad: parseInt(document.getElementById('cant-b10').value) || 0,
-                    valor: 10
-                },
-                b20: { 
-                    activo: !document.getElementById('denom-b20').classList.contains('disabled'),
-                    cantidad: parseInt(document.getElementById('cant-b20').value) || 0,
-                    valor: 20
-                },
-                b50: { 
-                    activo: !document.getElementById('denom-b50').classList.contains('disabled'),
-                    cantidad: parseInt(document.getElementById('cant-b50').value) || 0,
-                    valor: 50
-                },
-                b100: { 
-                    activo: !document.getElementById('denom-b100').classList.contains('disabled'),
-                    cantidad: parseInt(document.getElementById('cant-b100').value) || 0,
-                    valor: 100
-                },
-                b200: { 
-                    activo: !document.getElementById('denom-b200').classList.contains('disabled'),
-                    cantidad: parseInt(document.getElementById('cant-b200').value) || 0,
-                    valor: 200
-                }
-            };
-            
-            const formData = new FormData();
-            formData.append('turno', turno);
-            formData.append('denominaciones', JSON.stringify(denominaciones));
-            
-            fetch('abrir_caja.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('✅ Caja abierta exitosamente');
-                    location.reload();
-                } else {
-                    alert('❌ Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                alert('❌ Error de conexión: ' + error);
-            });
-        });
+      // APERTURA DE CAJA - CÓDIGO CORREGIDO
+document.getElementById('formAperturaCaja')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const turno = document.querySelector('input[name="turno"]:checked')?.value;
+    
+    if (!turno) {
+        alert('Debe seleccionar un turno');
+        return;
+    }
+    
+    // CORRECCIÓN: Enviar estructura simple con solo las cantidades
+    const denominaciones = {
+        m1: parseInt(document.getElementById('cant-m1').value) || 0,
+        m2: parseInt(document.getElementById('cant-m2').value) || 0,
+        m5: parseInt(document.getElementById('cant-m5').value) || 0,
+        b10: parseInt(document.getElementById('cant-b10').value) || 0,
+        b20: parseInt(document.getElementById('cant-b20').value) || 0,
+        b50: parseInt(document.getElementById('cant-b50').value) || 0,
+        b100: parseInt(document.getElementById('cant-b100').value) || 0,
+        b200: parseInt(document.getElementById('cant-b200').value) || 0
+    };
+    
+    const formData = new FormData();
+    formData.append('turno', turno);
+    formData.append('denominaciones', JSON.stringify(denominaciones));
+    
+    fetch('abrir_caja.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Caja abierta exitosamente');
+            location.reload();
+        } else {
+            alert('❌ Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('❌ Error de conexión: ' + error);
+    });
+});
+
+function confirmarPago() {
+    if (!pedidoActual) return;
+    
+    if (!cajaActual) {
+        alert('Debe abrir la caja antes de procesar pagos');
+        return;
+    }
+    
+    const total = parseFloat(pedidoActual.total);
+    const efectivo = parseFloat(document.getElementById('montoEfectivo').value) || 0;
+    const qr = parseFloat(document.getElementById('montoQR').value) || 0;
+    const pagado = efectivo + qr;
+    const nota = document.getElementById('notaPago').value;
+    
+    if (pagado < total) {
+        alert('El monto pagado es menor al total');
+        return;
+    }
+    
+    if (!document.getElementById('checkEfectivo').checked && !document.getElementById('checkQR').checked) {
+        alert('Debe seleccionar al menos un método de pago');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('pedido_id', pedidoActual.id);
+    formData.append('efectivo', efectivo);
+    formData.append('qr', qr);
+    formData.append('cambio', pagado - total);
+    formData.append('nota', nota);
+    formData.append('caja_id', cajaActual.id); // ← ESTA LÍNEA ES IMPORTANTE
+    
+    fetch('procesar_pago.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Pago procesado exitosamente');
+            location.reload();
+        } else {
+            alert('❌ Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('❌ Error de conexión: ' + error);
+    });
+}
         
-        // CERRAR CAJA
+        // CERRAR CAJA - CÓDIGO CORREGIDO
         function cerrarCaja() {
             if (!confirm('¿Está seguro de cerrar la caja? Esta acción no se puede deshacer.')) return;
             
@@ -1687,6 +1840,226 @@ foreach ($todos_productos as $p) {
                 }
             });
         }
+        // FUNCIONES DE REPORTES
+function generarReporte() {
+    const fecha = document.getElementById('filtroFecha').value;
+    const turno = document.getElementById('filtroTurno').value;
+    const cajero = document.getElementById('filtroCajero').value;
+    
+    if (!fecha) {
+        alert('Por favor seleccione una fecha');
+        return;
+    }
+    
+    // Mostrar loading
+document.getElementById('resultadoReporte').innerHTML = `
+    <div style="text-align: center; padding: 40px;">
+        <div class="spinner-reporte"></div>
+        <p style="margin-top: 15px; color: #667eea; font-size: 1.1rem;">Generando reporte...</p>
+    </div>
+`;
+    
+    const formData = new FormData();
+    formData.append('fecha', fecha);
+    formData.append('turno', turno);
+    formData.append('cajero_id', cajero);
+    
+    fetch('generar_reporte.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarResultadoReporte(data);
+        } else {
+            alert('Error: ' + data.message);
+            document.getElementById('resultadoReporte').innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #e74c3c;">
+                    <div style="font-size: 4rem; margin-bottom: 15px;">❌</div>
+                    <h4>Error al generar reporte</h4>
+                    <p>${data.message}</p>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        alert('Error de conexión: ' + error);
+        document.getElementById('resultadoReporte').innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #e74c3c;">
+                <div style="font-size: 4rem; margin-bottom: 15px;">❌</div>
+                <h4>Error de conexión</h4>
+                <p>No se pudo conectar con el servidor</p>
+            </div>
+        `;
+    });
+}
+// Mostrar resultados del reporte
+function mostrarResultadoReporte(data) {
+    const { resumen, detalle, filtros } = data;
+    const fechaFormateada = new Date(filtros.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    let html = `
+        <div class="caja-info">
+            <h3 style="color: #2c3e50; margin-bottom: 20px; text-align: center; text-transform: uppercase;">
+                📈 Reporte de Ventas - ${fechaFormateada}
+            </h3>
+            
+            <!-- RESUMEN GENERAL -->
+            <div class="reporte-resumen">
+                <h4 style="margin-bottom: 20px; text-align: center;">📊 Resumen General del Día</h4>
+                <div class="row text-center">
+                    <div class="col-md-4 resumen-item">
+                        <div class="resumen-label">TOTAL VENTAS</div>
+                        <div class="resumen-valor">Bs. ${parseFloat(resumen.total_ventas || 0).toFixed(2)}</div>
+                    </div>
+                    <div class="col-md-4 resumen-item">
+                        <div class="resumen-label">TOTAL PEDIDOS</div>
+                        <div class="resumen-valor">${resumen.total_pedidos || 0}</div>
+                    </div>
+                    <div class="col-md-4 resumen-item">
+                        <div class="resumen-label">CAJEROS ACTIVOS</div>
+                        <div class="resumen-valor">${resumen.total_cajeros || 0}</div>
+                    </div>
+                </div>
+            </div>
+    `;
+    
+    // Si no hay datos
+    if (detalle.length === 0) {
+        html += `
+            <div class="caja-status" style="border-color: #95a5a6; margin-top: 20px;">
+                <div class="status-icon">📭</div>
+                <div class="status-text" style="color: #95a5a6;">NO HAY DATOS</div>
+                <p style="color: #7f8c8d; font-size: 1.1rem;">No se encontraron ventas para los filtros seleccionados</p>
+            </div>
+        `;
+    } else {
+        // Agrupar por turno
+        const porTurno = {};
+        detalle.forEach(item => {
+            if (!porTurno[item.turno]) {
+                porTurno[item.turno] = [];
+            }
+            porTurno[item.turno].push(item);
+        });
+        
+        // Mostrar por turno
+        Object.keys(porTurno).forEach(turno => {
+            const itemsTurno = porTurno[turno];
+            const totalTurno = itemsTurno.reduce((sum, item) => sum + parseFloat(item.total_ventas), 0);
+            const totalPedidosTurno = itemsTurno.reduce((sum, item) => sum + parseInt(item.total_pedidos), 0);
+            
+            const icono = turno === 'mañana' ? '🌅' : '🌙';
+            const nombreTurno = turno === 'mañana' ? 'TURNO MAÑANA (12:00 - 16:00)' : 'TURNO NOCHE (19:00 - 00:00)';
+            const colorTurno = turno === 'mañana' ? '#e67e22' : '#9b59b6';
+            
+            html += `
+                <div class="reporte-turno" style="border-left-color: ${colorTurno};">
+                    <h5 style="color: ${colorTurno}; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                        ${icono} ${nombreTurno}
+                    </h5>
+                    
+                    <div style="display: flex; justify-content: space-between; background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <div>
+                            <strong style="color: #2c3e50;">Ventas Totales:</strong>
+                            <span style="color: #27ae60; font-weight: bold; font-size: 1.2rem; margin-left: 10px;">
+                                Bs. ${totalTurno.toFixed(2)}
+                            </span>
+                        </div>
+                        <div>
+                            <strong style="color: #2c3e50;">Total Pedidos:</strong>
+                            <span style="color: #3498db; font-weight: bold; font-size: 1.2rem; margin-left: 10px;">
+                                ${totalPedidosTurno}
+                            </span>
+                        </div>
+                    </div>
+            `;
+            
+            // Detalle por cajero en el turno
+            html += `<div style="margin-top: 10px;"><strong>Desglose por Cajero:</strong></div>`;
+            itemsTurno.forEach(item => {
+                html += `
+                    <div class="reporte-cajero">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${item.cajero_nombre}</strong>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="color: #27ae60; font-weight: bold; font-size: 1.1rem;">
+                                    Bs. ${parseFloat(item.total_ventas).toFixed(2)}
+                                </div>
+                                <div style="color: #7f8c8d; font-size: 0.9rem;">
+                                    ${item.total_pedidos} pedido(s)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+        });
+        
+        // Resumen por cajero (todos los turnos)
+        if (detalle.length > 0) {
+            html += `
+                <div class="reporte-detalle">
+                    <h5 style="color: #2c3e50; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                        👤 Resumen por Cajero
+                    </h5>
+            `;
+            
+            // Agrupar por cajero (sumar todos los turnos)
+            const porCajero = {};
+            detalle.forEach(item => {
+                if (!porCajero[item.cajero_id]) {
+                    porCajero[item.cajero_id] = {
+                        nombre: item.cajero_nombre,
+                        total_ventas: 0,
+                        total_pedidos: 0
+                    };
+                }
+                porCajero[item.cajero_id].total_ventas += parseFloat(item.total_ventas);
+                porCajero[item.cajero_id].total_pedidos += parseInt(item.total_pedidos);
+            });
+            
+            // Ordenar por total de ventas (mayor a menor)
+            const cajerosOrdenados = Object.values(porCajero).sort((a, b) => b.total_ventas - a.total_ventas);
+            
+            cajerosOrdenados.forEach((cajero, index) => {
+                const top3 = index < 3 ? '🏆 ' : '';
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; margin: 8px 0; border-radius: 8px; border-left: 4px solid #3498db;">
+                        <div style="font-weight: bold; color: #2c3e50;">
+                            ${top3}${cajero.nombre}
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="color: #27ae60; font-weight: bold;">
+                                Bs. ${cajero.total_ventas.toFixed(2)}
+                            </div>
+                            <div style="color: #7f8c8d; font-size: 0.9rem;">
+                                ${cajero.total_pedidos} pedidos
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+        }
+    }
+    
+    html += `</div>`;
+    
+    document.getElementById('resultadoReporte').innerHTML = html;
+}
+// fin resultados reporte
     </script>
 </body>
 </html>

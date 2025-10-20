@@ -11,7 +11,7 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['rol'] != 'cajero') {
 
 $pedido_id = $_GET['id'];
 
-// Obtener pedido
+// Obtener pedido (CORREGIDO para nueva estructura)
 $stmt = $pdo->prepare("
     SELECT p.*, m.numero as mesa_numero, u.nombre as garzon_nombre
     FROM pedidos p
@@ -22,9 +22,9 @@ $stmt = $pdo->prepare("
 $stmt->execute([$pedido_id]);
 $pedido = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Obtener items
+// Obtener items (CORREGIDO para nueva estructura)
 $stmt = $pdo->prepare("
-    SELECT pi.*, pr.nombre
+    SELECT pi.*, pr.nombre, pr.categoria
     FROM pedido_items pi
     INNER JOIN productos pr ON pi.producto_id = pr.id
     WHERE pi.pedido_id = ?

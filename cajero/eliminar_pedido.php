@@ -19,6 +19,11 @@ try {
     $stmt->execute([$pedido_id]);
     $pedido = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    if (!$pedido) {
+        echo json_encode(['success' => false, 'message' => 'Pedido no encontrado']);
+        exit;
+    }
+
     // Eliminar items del pedido
     $stmt = $pdo->prepare("DELETE FROM pedido_items WHERE pedido_id = ?");
     $stmt->execute([$pedido_id]);
@@ -33,7 +38,7 @@ try {
 
     $pdo->commit();
 
-    echo json_encode(['success' => true]);
+    echo json_encode(['success' => true, 'message' => 'Pedido eliminado correctamente']);
 
 } catch (Exception $e) {
     $pdo->rollBack();

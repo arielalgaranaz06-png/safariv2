@@ -54,6 +54,27 @@ foreach ($productos as $producto) {
             margin: 0;
         }
         
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .turno-info {
+            background: #ffeaa7;
+            color: #2d3436;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border: 2px solid #fdcb6e;
+        }
+        
+        .turno-info.noche {
+            background: #a29bfe;
+            border-color: #6c5ce7;
+        }
+        
         .main-container {
             display: flex;
             height: calc(100vh - 70px);
@@ -252,6 +273,17 @@ foreach ($productos as $producto) {
             margin-bottom: 20px;
         }
         
+        .info-turno-pedido {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #1565c0;
+            margin-bottom: 10px;
+            border-left: 4px solid #2196f3;
+        }
+        
         .pedido-item {
             background: #f8f9fa;
             padding: 15px;
@@ -398,14 +430,21 @@ foreach ($productos as $producto) {
             .categorias-tabs {
                 flex-direction: column;
             }
+            
+            .header-info {
+                flex-direction: column;
+                gap: 8px;
+                align-items: flex-end;
+            }
         }
     </style>
 </head>
 <body>
     <div class="header-bar">
         <h1>🍖 Safari - Garzón</h1>
-        <div>
-            <span style="margin-right: 15px;"><?php echo $_SESSION['nombre']; ?></span>
+        <div class="header-info">
+            <div id="turnoDisplay" class="turno-info">Cargando turno...</div>
+            <span><?php echo $_SESSION['nombre']; ?></span>
             <a href="../logout.php" class="btn btn-danger btn-sm">Salir</a>
         </div>
     </div>
@@ -506,6 +545,24 @@ foreach ($productos as $producto) {
     <script>
         let mesaSeleccionada = null;
         let productosEnPedido = {};
+        let turnoActual = '';
+
+        // Función para mostrar información del turno actual
+        function mostrarInfoTurno() {
+            fetch('obtener_turno_actual.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        turnoActual = data.turno;
+                        const turnoDisplay = document.getElementById('turnoDisplay');
+                        turnoDisplay.textContent = `Turno: ${data.turno === 'mañana' ? 'MEDIODÍA' : 'NOCHE'}`;
+                        turnoDisplay.className = `turno-info ${data.turno === 'noche' ? 'noche' : ''}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al obtener turno:', error);
+                });
+        }
 
         function cambiarCategoria(categoria, btn) {
             document.querySelectorAll('.categoria-tab').forEach(tab => tab.classList.remove('active'));
@@ -560,6 +617,12 @@ foreach ($productos as $producto) {
             lista.innerHTML = '';
             let total = 0;
 
+            // Agregar información del turno al resumen
+            const turnoInfo = document.createElement('div');
+            turnoInfo.className = 'info-turno-pedido';
+            turnoInfo.textContent = `Turno: ${turnoActual === 'mañana' ? 'MEDIODÍA' : 'NOCHE'}`;
+            lista.appendChild(turnoInfo);
+
             for (const [id, item] of Object.entries(productosEnPedido)) {
                 const subtotal = item.precio * item.cantidad;
                 total += subtotal;
@@ -607,7 +670,9 @@ foreach ($productos as $producto) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('✅ Pedido creado exitosamente');
+                    const turnoNombre = data.turno === 'mañana' ? 'MEDIODÍA' : 'NOCHE';
+                    const cajaInfo = data.caja_asociada ? ' (Asociado a caja activa)' : '';
+                    alert(`✅ Pedido creado exitosamente\nTurno: ${turnoNombre}${cajaInfo}`);
                     location.reload();
                 } else {
                     alert('❌ Error: ' + data.message);
@@ -617,6 +682,11 @@ foreach ($productos as $producto) {
                 alert('❌ Error de conexión: ' + error);
             });
         }
+
+        // Inicializar al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            mostrarInfoTurno();
+        });
     </script>
 </body>
 </html>
