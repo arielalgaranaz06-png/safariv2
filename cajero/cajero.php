@@ -862,21 +862,17 @@ foreach ($todos_productos as $p) {
         <div class="sidebar" id="sidebar">
             <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
             <div class="sidebar-menu">
-                <div class="menu-item" onclick="cambiarSeccion('pedidos')">
-                    <span class="menu-icon">📋</span>
-                    <span class="menu-text">Pedidos</span>
-                </div>
                 <div class="menu-item active" onclick="cambiarSeccion('caja')">
                     <span class="menu-icon">💵</span>
                     <span class="menu-text">Caja</span>
                 </div>
+                <div class="menu-item" onclick="cambiarSeccion('pedidos')">
+                    <span class="menu-icon">📋</span>
+                    <span class="menu-text">Pedidos</span>
+                </div>
                 <div class="menu-item" onclick="cambiarSeccion('reportes')">
                     <span class="menu-icon">📊</span>
                     <span class="menu-text">Reportes</span>
-                </div>
-                <div class="menu-item" onclick="cambiarSeccion('configuracion')">
-                    <span class="menu-icon">⚙️</span>
-                    <span class="menu-text">Configuración</span>
                 </div>
             </div>
         </div>
