@@ -135,16 +135,13 @@ try {
                 throw new Exception('Usuario no encontrado');
             }
             
-            // Verificar que no tenga pedidos asociados (opcional)
-            // Si tienes tabla de pedidos, descomenta esto:
-            /*
+            // Verificar que no tenga pedidos asociados
             $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM pedidos WHERE usuario_id = ?");
             $stmt->execute([$id]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($result['total'] > 0) {
                 throw new Exception('No se puede eliminar: el usuario tiene pedidos asociados');
             }
-            */
             
             // Eliminar usuario
             $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = ?");

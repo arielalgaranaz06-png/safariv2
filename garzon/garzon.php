@@ -7,9 +7,17 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['rol'] != 'garzon') {
     exit;
 }
 
-$stmt = $pdo->query("SELECT * FROM mesas ORDER BY numero");
+$stmt = $pdo->query("
+    SELECT * FROM mesas 
+    ORDER BY 
+        CASE 
+            WHEN numero REGEXP '^[0-9]+$' THEN 0 
+            ELSE 1 
+        END,
+        CAST(numero AS UNSIGNED),
+        numero
+");
 $mesas = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 $stmt = $pdo->query("SELECT * FROM productos WHERE activo = 1 ORDER BY categoria, nombre");
 $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -1084,10 +1092,9 @@ foreach ($productos as $producto) {
 </head>
 <body>
     <div class="header-bar">
-        <h1>🍖 Safari - Garzón</h1>
+        <h1>Garzón <span><?php echo $_SESSION['nombre']; ?></span> </h1>
         <div class="header-info">
             <div id="turnoDisplay" class="turno-info">Cargando...</div>
-            <span><?php echo $_SESSION['nombre']; ?></span>
             <a href="../logout.php" class="btn btn-danger btn-sm">Salir</a>
         </div>
     </div>
