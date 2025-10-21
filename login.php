@@ -2,7 +2,6 @@
 session_start();
 require_once 'db.php';
 
-// Si ya está logueado, redirigir según su rol
 if (isset($_SESSION['usuario_id'])) {
     switch($_SESSION['rol']) {
         case 'garzon':
@@ -25,25 +24,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (empty($usuario) || empty($password)) {
         $error = "Por favor complete todos los campos";
     } else {
-        // Buscar usuario activo
         $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE usuario = ? AND activo = 1");
         $stmt->execute([$usuario]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user) {
-            // Verificar contraseña con hash
             if (password_verify($password, $user['password'])) {
-                // Login exitoso
                 $_SESSION['usuario_id'] = $user['id'];
                 $_SESSION['nombre'] = $user['nombre'];
                 $_SESSION['rol'] = $user['rol'];
                 $_SESSION['login_time'] = time();
 
-                // Registrar último acceso (opcional)
                 $stmt = $pdo->prepare("UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = ?");
                 $stmt->execute([$user['id']]);
 
-                // Redirigir según el rol
                 switch($user['rol']) {
                     case 'garzon':
                         header('Location: garzon/garzon.php');
@@ -69,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Login - Safari Restaurant</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -78,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -89,10 +84,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             justify-content: center;
             padding: 20px;
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
-        /* Animación de fondo */
         body::before {
             content: '';
             position: absolute;
@@ -111,7 +105,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             100% { transform: translate(50px, 50px); }
         }
 
-        /* Partículas flotantes */
         .particle {
             position: absolute;
             background: rgba(255,255,255,0.15);
@@ -270,6 +263,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             padding-left: 55px;
             transition: all 0.3s;
             background: #f8f9fa;
+            width: 100%;
         }
 
         .form-control:focus {
@@ -289,10 +283,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             color: #95a5a6;
             transition: color 0.3s;
             z-index: 2;
+            padding: 10px;
+            touch-action: manipulation;
         }
 
-        .password-toggle:hover {
+        .password-toggle:active {
             color: #667eea;
+            transform: translateY(-50%) scale(0.9);
         }
 
         .btn-login {
@@ -308,15 +305,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
             text-transform: uppercase;
             letter-spacing: 1px;
-        }
-
-        .btn-login:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
+            touch-action: manipulation;
         }
 
         .btn-login:active {
-            transform: translateY(-1px);
+            transform: scale(0.98);
         }
 
         .alert {
@@ -339,91 +332,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             color: white;
         }
 
-        .info-box {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 25px;
-            border-radius: 20px;
-            margin-top: 30px;
-            border: 2px solid #e0e0e0;
-        }
-
-        .info-title {
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            text-align: center;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .user-credential {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 15px;
-            background: white;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            transition: all 0.3s;
-            border: 2px solid transparent;
-        }
-
-        .user-credential:hover {
-            transform: translateX(5px);
-            border-color: #667eea;
-            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.2);
-        }
-
-        .user-credential:last-child {
-            margin-bottom: 0;
-        }
-
-        .user-type {
-            font-weight: 700;
-            color: #2c3e50;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .user-type i {
-            color: #667eea;
-        }
-
-        .user-data {
-            font-family: 'Courier New', monospace;
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-
-        .divider {
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #667eea, transparent);
-            margin: 25px 0;
-        }
-
-        @media (max-width: 576px) {
-            .login-card {
-                padding: 35px 25px;
-            }
-
-            .login-title {
-                font-size: 2rem;
-            }
-
-            .form-control {
-                height: 55px;
-            }
-
-            .btn-login {
-                height: 55px;
-            }
-        }
-
-        /* Loading spinner */
         .spinner {
             display: none;
             width: 20px;
@@ -442,10 +350,187 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .btn-login.loading .spinner {
             display: inline-block;
         }
+
+        /* RESPONSIVE MÓVIL */
+        @media (max-width: 576px) {
+            body {
+                padding: 15px;
+            }
+
+            .login-card {
+                padding: 30px 20px;
+                border-radius: 20px;
+            }
+
+            .logo-icon {
+                font-size: 3rem;
+            }
+
+            .login-title {
+                font-size: 1.8rem;
+                letter-spacing: 1px;
+            }
+
+            .login-subtitle {
+                font-size: 0.95rem;
+                margin-bottom: 30px;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+
+            .form-label {
+                font-size: 0.9rem;
+                margin-bottom: 8px;
+            }
+
+            .form-control {
+                height: 50px;
+                font-size: 1rem;
+                padding-left: 50px;
+                border-radius: 12px;
+            }
+
+            .input-icon {
+                left: 15px;
+                font-size: 1.1rem;
+            }
+
+            .password-toggle {
+                right: 15px;
+                padding: 15px;
+            }
+
+            .btn-login {
+                height: 50px;
+                font-size: 1rem;
+                border-radius: 12px;
+            }
+
+            .alert {
+                padding: 15px;
+                font-size: 0.9rem;
+            }
+
+            .particle {
+                display: none;
+            }
+        }
+
+        /* RESPONSIVE HORIZONTAL */
+        @media (max-width: 900px) and (orientation: landscape) {
+            body {
+                padding: 10px;
+            }
+
+            .login-card {
+                padding: 25px 30px;
+                border-radius: 20px;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+
+            .logo-icon {
+                font-size: 2.5rem;
+            }
+
+            .login-title {
+                font-size: 1.8rem;
+                margin-bottom: 5px;
+            }
+
+            .login-subtitle {
+                font-size: 0.9rem;
+                margin-bottom: 20px;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+            .form-label {
+                font-size: 0.85rem;
+                margin-bottom: 6px;
+            }
+
+            .form-control {
+                height: 45px;
+                font-size: 0.95rem;
+                border-radius: 10px;
+            }
+
+            .input-icon {
+                font-size: 1rem;
+            }
+
+            .btn-login {
+                height: 45px;
+                font-size: 0.95rem;
+            }
+
+            .particle {
+                display: none;
+            }
+        }
+
+        /* TABLETS */
+        @media (min-width: 577px) and (max-width: 768px) {
+            .login-container {
+                max-width: 450px;
+            }
+
+            .login-card {
+                padding: 40px 30px;
+            }
+
+            .logo-icon {
+                font-size: 3.5rem;
+            }
+
+            .login-title {
+                font-size: 2.2rem;
+            }
+
+            .form-control {
+                height: 55px;
+            }
+
+            .btn-login {
+                height: 55px;
+                font-size: 1.1rem;
+            }
+        }
+
+        /* DESKTOP GRANDE */
+        @media (min-width: 1200px) {
+            .login-container {
+                max-width: 520px;
+            }
+
+            .login-card {
+                padding: 60px 50px;
+            }
+
+            .btn-login:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
+            }
+
+            .password-toggle:hover {
+                color: #667eea;
+            }
+        }
+
+        /* Fix para iOS */
+        @supports (-webkit-touch-callout: none) {
+            .form-control {
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Partículas de fondo -->
     <div class="particle"></div>
     <div class="particle"></div>
     <div class="particle"></div>
@@ -513,7 +598,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 
     <script>
-        // Toggle password visibility
         function togglePasswordVisibility() {
             const passwordInput = document.getElementById('password');
             const toggleIcon = document.getElementById('togglePassword');
@@ -529,31 +613,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
 
-        // Loading animation on submit
-        document.getElementById('loginForm').addEventListener('submit', function() {
-            const btn = document.getElementById('btnLogin');
-            btn.classList.add('loading');
-            btn.disabled = true;
-        });
-
-        // Auto-fill credentials on click
-        document.querySelectorAll('.user-credential').forEach(credential => {
-            credential.addEventListener('click', function() {
-                const text = this.querySelector('.user-data').textContent.trim();
-                const [username, password] = text.split(' / ');
-                
-                document.querySelector('input[name="usuario"]').value = username;
-                document.querySelector('input[name="password"]').value = password;
-                
-                // Animación visual
-                this.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    this.style.transform = '';
-                }, 150);
-            });
-        });
-
-        // Prevenir múltiples envíos
         let formSubmitted = false;
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             if (formSubmitted) {
@@ -561,7 +620,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 return false;
             }
             formSubmitted = true;
+            const btn = document.getElementById('btnLogin');
+            btn.classList.add('loading');
+            btn.disabled = true;
         });
+
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

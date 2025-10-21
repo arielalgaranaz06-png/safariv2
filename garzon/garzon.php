@@ -27,47 +27,57 @@ foreach ($productos as $producto) {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Garzón - Safari</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
+        * { 
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
         body { 
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f5f5;
+            overflow-x: hidden;
         }
         
         .header-bar {
             background: linear-gradient(135deg, #667eea 0%, #085a91ff 100%);
             color: white;
-            padding: 15px 20px;
+            padding: 12px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
         
         .header-bar h1 {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             margin: 0;
         }
         
         .header-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
+            font-size: 0.85rem;
         }
         
         .turno-info {
             background: #ffeaa7;
             color: #2d3436;
-            padding: 8px 15px;
-            border-radius: 20px;
+            padding: 6px 12px;
+            border-radius: 15px;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             border: 2px solid #fdcb6e;
+            white-space: nowrap;
         }
         
         .turno-info.noche {
@@ -77,7 +87,7 @@ foreach ($productos as $producto) {
         
         .main-container {
             display: flex;
-            height: calc(100vh - 70px);
+            height: calc(100vh - 60px);
             overflow: hidden;
         }
         
@@ -92,10 +102,10 @@ foreach ($productos as $producto) {
         }
         
         .mesas-header {
-            padding: 20px;
+            padding: 15px;
             background: #2c3e50;
             color: white;
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             font-weight: bold;
             text-align: center;
         }
@@ -119,6 +129,7 @@ foreach ($productos as $producto) {
             cursor: pointer;
             transition: all 0.3s;
             border: 3px solid transparent;
+            touch-action: manipulation;
         }
         
         .mesa-libre {
@@ -133,14 +144,14 @@ foreach ($productos as $producto) {
             border-color: #dc3545;
         }
         
-        .mesa-item:hover {
-            transform: scale(1.1);
+        .mesa-item:active {
+            transform: scale(0.95);
         }
         
         .mesa-item.selected {
             border-color: #ff0000ff;
             box-shadow: 0 0 15px rgba(243, 130, 130, 0.5);
-            transform: scale(1.15);
+            transform: scale(1.1);
         }
         
         /* PANEL CENTRAL - PRODUCTOS */
@@ -148,37 +159,37 @@ foreach ($productos as $producto) {
             flex: 1;
             background: #f8f9fa;
             overflow-y: auto;
-            padding: 20px;
+            padding: 15px;
         }
         
         .categorias-tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 15px;
             position: sticky;
             top: 0;
             background: #f8f9fa;
             padding: 10px 0;
             z-index: 10;
-            border-bottom: 3px solid #ddd;
+            border-bottom: 2px solid #ddd;
         }
         
         .categoria-tab {
             flex: 1;
-            padding: 15px 20px;
+            padding: 12px 15px;
             border: none;
             background: white;
-            border-radius: 10px;
-            font-size: 1.1rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            touch-action: manipulation;
         }
         
-        .categoria-tab:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        .categoria-tab:active {
+            transform: translateY(1px);
         }
         
         .categoria-tab.active {
@@ -188,13 +199,13 @@ foreach ($productos as $producto) {
         }
         
         .categoria-tab.plato-principal { border: 3px solid #3498db; color: #3498db; }
-        .categoria-tab.plato-principal.active { background: #3498db42; }
+        .categoria-tab.plato-principal.active { background: #3498db3e; }
         
         .categoria-tab.acompanamiento { border: 3px solid #3498db; color: #3498db; }
-        .categoria-tab.acompanamiento.active { background: #3498db42; }
+        .categoria-tab.acompanamiento.active { background: #3498db3e; }
         
         .categoria-tab.bebida { border: 3px solid #3498db; color: #3498db; }
-        .categoria-tab.bebida.active { background: #3498db42; }
+        .categoria-tab.bebida.active { background: #3498db3e; }
         
         .categoria-content {
             display: none;
@@ -206,35 +217,39 @@ foreach ($productos as $producto) {
         
         .producto-item {
             background: white;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.3s;
-            border: 3px solid #e0e0e0;
+            transition: all 0.2s;
+            border: 2px solid #e0e0e0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            touch-action: manipulation;
         }
         
-        .producto-item:hover {
-            transform: translateX(5px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        .producto-item:active {
+            transform: scale(0.98);
+            background: #f0f0f0;
         }
         
         .producto-nombre {
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: 600;
             color: #2c3e50;
+            flex: 1;
+            padding-right: 10px;
         }
         
         .producto-precio {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             font-weight: bold;
             color: #27ae60;
             background: #d4edda;
-            padding: 8px 16px;
-            border-radius: 20px;
+            padding: 6px 12px;
+            border-radius: 15px;
+            white-space: nowrap;
         }
         
         /* PANEL DERECHO - RESUMEN */
@@ -248,37 +263,37 @@ foreach ($productos as $producto) {
         }
         
         .resumen-header {
-            padding: 20px;
+            padding: 15px;
             background: #9dc8e6ff;
             color: white;
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             font-weight: bold;
             text-align: center;
         }
         
         .resumen-body {
             flex: 1;
-            padding: 20px;
+            padding: 15px;
             overflow-y: auto;
         }
         
         .mesa-info {
             background: #e3f2fd;
-            padding: 15px;
-            border-radius: 10px;
+            padding: 12px;
+            border-radius: 8px;
             text-align: center;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: bold;
             color: #1565c0;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         .info-turno-pedido {
             background: #e3f2fd;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 8px;
+            border-radius: 6px;
             text-align: center;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #1565c0;
             margin-bottom: 10px;
             border-left: 4px solid #2196f3;
@@ -286,9 +301,9 @@ foreach ($productos as $producto) {
         
         .pedido-item {
             background: #f8f9fa;
-            padding: 15px;
-            margin-bottom: 12px;
-            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
             border: 2px solid #dee2e6;
         }
         
@@ -296,35 +311,39 @@ foreach ($productos as $producto) {
             display: flex;
             justify-content: space-between;
             margin-bottom: 10px;
+            gap: 10px;
         }
         
         .pedido-item-nombre {
             font-weight: bold;
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             color: #2c3e50;
+            flex: 1;
         }
         
         .pedido-item-subtotal {
             font-weight: bold;
             color: #27ae60;
+            white-space: nowrap;
         }
         
         .cantidad-controls {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px;
+            gap: 12px;
         }
         
         .cantidad-btn {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border: none;
-            border-radius: 8px;
-            font-size: 1.3rem;
+            border-radius: 6px;
+            font-size: 1.2rem;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.2s;
+            touch-action: manipulation;
         }
         
         .cantidad-btn.menos {
@@ -337,19 +356,19 @@ foreach ($productos as $producto) {
             color: white;
         }
         
-        .cantidad-btn:hover {
-            transform: scale(1.1);
+        .cantidad-btn:active {
+            transform: scale(0.9);
         }
         
         .cantidad-display {
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             font-weight: bold;
             min-width: 30px;
             text-align: center;
         }
         
         .resumen-total {
-            padding: 20px;
+            padding: 15px;
             background: #f8f9fa;
             border-top: 3px solid #dee2e6;
         }
@@ -358,37 +377,36 @@ foreach ($productos as $producto) {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
         
         .total-label {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: bold;
         }
         
         .total-amount {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: bold;
             color: #27ae60;
         }
         
         .btn-crear-pedido {
             width: 100%;
-            padding: 18px;
+            padding: 15px;
             border: none;
-            border-radius: 12px;
-            font-size: 1.3rem;
+            border-radius: 10px;
+            font-size: 1.2rem;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
             background: #27ae60;
             color: white;
+            touch-action: manipulation;
         }
         
-        .btn-crear-pedido:hover:not(:disabled) {
-            background: #229954;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        .btn-crear-pedido:active:not(:disabled) {
+            transform: scale(0.98);
         }
         
         .btn-crear-pedido:disabled {
@@ -396,46 +414,329 @@ foreach ($productos as $producto) {
             cursor: not-allowed;
             opacity: 0.6;
         }
+
+        /* Toggle para resumen en móvil */
+        .resumen-toggle {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #27ae60;
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 999;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .resumen-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .resumen-toggle .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            border-radius: 50%;
+            min-width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
         
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
+        /* RESPONSIVE MÓVIL - VERTICAL */
+        @media (max-width: 768px) and (orientation: portrait) {
+            .header-bar h1 {
+                font-size: 1rem;
+            }
+
+            .header-info {
+                gap: 8px;
+            }
+
+            .header-info span {
+                display: none;
+            }
+
+            .btn-danger {
+                padding: 4px 10px;
+                font-size: 0.8rem;
+            }
+            
             .main-container {
                 flex-direction: column;
-                height: auto;
+                height: calc(100vh - 55px);
             }
             
             .mesas-panel {
                 width: 100%;
                 border-right: none;
-                border-bottom: 3px solid #ddd;
+                border-bottom: 2px solid #ddd;
                 height: auto;
                 max-height: 200px;
+                min-height: 200px;
+            }
+
+            .mesas-header {
+                padding: 10px;
+                font-size: 0.95rem;
+            }
+
+            .mesas-grid {
+                padding: 15px;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .mesa-item {
+                width: 60px;
+                height: 60px;
+                margin: 5px;
+                font-size: 1rem;
             }
             
             .resumen-panel {
+                position: fixed;
+                bottom: -100%;
+                left: 0;
                 width: 100%;
+                height: 70vh;
                 border-left: none;
                 border-top: 3px solid #ddd;
-                position: fixed;
+                z-index: 998;
+                transition: bottom 0.3s ease-in-out;
+            }
+
+            .resumen-panel.show {
                 bottom: 0;
-                left: 0;
-                max-height: 50vh;
-                z-index: 100;
+            }
+
+            .resumen-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
             
             .productos-panel {
-                padding-bottom: 50vh;
+                flex: 1;
+                padding: 10px;
+                overflow-y: auto;
+                padding-bottom: 100px;
             }
-            
+
             .categorias-tabs {
-                flex-direction: column;
+                gap: 6px;
+                padding: 8px 0;
+            }
+
+            .categoria-tab {
+                padding: 10px 8px;
+                font-size: 0.8rem;
+            }
+
+            .producto-item {
+                padding: 12px;
+                margin-bottom: 10px;
+            }
+
+            .producto-nombre {
+                font-size: 0.9rem;
+            }
+
+            .producto-precio {
+                font-size: 0.95rem;
+                padding: 5px 10px;
+            }
+        }
+        
+        /* RESPONSIVE MÓVIL - HORIZONTAL */
+        @media (max-width: 900px) and (orientation: landscape) {
+            .header-bar {
+                padding: 8px 12px;
+            }
+
+            .header-bar h1 {
+                font-size: 0.95rem;
+            }
+
+            .header-info {
+                font-size: 0.75rem;
+                gap: 8px;
+            }
+
+            .turno-info {
+                padding: 4px 8px;
+                font-size: 0.7rem;
+            }
+
+            .btn-danger {
+                padding: 3px 8px;
+                font-size: 0.75rem;
             }
             
-            .header-info {
-                flex-direction: column;
-                gap: 8px;
-                align-items: flex-end;
+            .main-container {
+                height: calc(100vh - 45px);
             }
+
+            .mesas-panel {
+                width: 200px;
+            }
+
+            .mesas-header {
+                padding: 8px;
+                font-size: 0.85rem;
+            }
+
+            .mesas-grid {
+                padding: 8px;
+            }
+
+            .mesa-item {
+                width: 50px;
+                height: 50px;
+                margin: 5px;
+                font-size: 0.9rem;
+                border-width: 2px;
+            }
+
+            .resumen-panel {
+                width: 280px;
+            }
+
+            .resumen-header {
+                padding: 10px;
+                font-size: 0.95rem;
+            }
+
+            .resumen-body {
+                padding: 10px;
+            }
+
+            .mesa-info {
+                padding: 8px;
+                font-size: 0.95rem;
+                margin-bottom: 10px;
+            }
+
+            .info-turno-pedido {
+                padding: 6px;
+                font-size: 0.75rem;
+            }
+
+            .pedido-item {
+                padding: 10px;
+                margin-bottom: 8px;
+            }
+
+            .pedido-item-nombre {
+                font-size: 0.85rem;
+            }
+
+            .pedido-item-subtotal {
+                font-size: 0.85rem;
+            }
+
+            .cantidad-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+
+            .cantidad-display {
+                font-size: 1rem;
+            }
+
+            .resumen-total {
+                padding: 10px;
+            }
+
+            .total-label {
+                font-size: 1.1rem;
+            }
+
+            .total-amount {
+                font-size: 1.2rem;
+            }
+
+            .btn-crear-pedido {
+                padding: 12px;
+                font-size: 1rem;
+            }
+
+            .productos-panel {
+                padding: 10px;
+            }
+
+            .categorias-tabs {
+                gap: 6px;
+                margin-bottom: 10px;
+                padding: 6px 0;
+            }
+
+            .categoria-tab {
+                padding: 8px 10px;
+                font-size: 0.8rem;
+                border-width: 2px;
+            }
+
+            .producto-item {
+                padding: 10px;
+                margin-bottom: 8px;
+            }
+
+            .producto-nombre {
+                font-size: 0.85rem;
+            }
+
+            .producto-precio {
+                font-size: 0.9rem;
+                padding: 4px 10px;
+            }
+        }
+
+        /* Overlay para cerrar resumen en móvil */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 997;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        /* Scrollbar personalizado */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
     </style>
 </head>
@@ -443,16 +744,23 @@ foreach ($productos as $producto) {
     <div class="header-bar">
         <h1>🍖 Safari - Garzón</h1>
         <div class="header-info">
-            <div id="turnoDisplay" class="turno-info">Cargando turno...</div>
+            <div id="turnoDisplay" class="turno-info">Cargando...</div>
             <span><?php echo $_SESSION['nombre']; ?></span>
             <a href="../logout.php" class="btn btn-danger btn-sm">Salir</a>
         </div>
     </div>
 
+    <div class="overlay" id="overlay" onclick="toggleResumen()"></div>
+
+    <button class="resumen-toggle" id="resumenToggle" onclick="toggleResumen()">
+        🛒
+        <span class="badge" id="badgeCount">0</span>
+    </button>
+
     <div class="main-container">
         <!-- PANEL MESAS -->
         <div class="mesas-panel">
-            <div class="mesas-header">MESAS DISPONIBLES</div>
+            <div class="mesas-header">MESAS</div>
             <div class="mesas-grid">
                 <?php foreach ($mesas as $mesa): ?>
                     <div class="mesa-item <?php echo $mesa['estado'] == 'libre' ? 'mesa-libre' : 'mesa-ocupada'; ?>"
@@ -469,10 +777,10 @@ foreach ($productos as $producto) {
         <div class="productos-panel">
             <div class="categorias-tabs">
                 <button class="categoria-tab plato-principal active" onclick="cambiarCategoria('plato_principal', this)">
-                    PLATO PRINCIPAL
+                    PLATOS
                 </button>
                 <button class="categoria-tab acompanamiento" onclick="cambiarCategoria('acompanamiento', this)">
-                    ACOMPAÑAMIENTO
+                    ACOMPAÑAMIENTOS
                 </button>
                 <button class="categoria-tab bebida" onclick="cambiarCategoria('bebida', this)">
                     BEBIDAS
@@ -523,7 +831,7 @@ foreach ($productos as $producto) {
         </div>
 
         <!-- PANEL RESUMEN -->
-        <div class="resumen-panel">
+        <div class="resumen-panel" id="resumenPanel">
             <div class="resumen-header">PEDIDO ACTUAL</div>
             <div class="resumen-body">
                 <div class="mesa-info" id="mesaInfo">Seleccione una mesa</div>
@@ -547,7 +855,20 @@ foreach ($productos as $producto) {
         let productosEnPedido = {};
         let turnoActual = '';
 
-        // Función para mostrar información del turno actual
+        function toggleResumen() {
+            const panel = document.getElementById('resumenPanel');
+            const overlay = document.getElementById('overlay');
+            panel.classList.toggle('show');
+            overlay.classList.toggle('show');
+        }
+
+        function actualizarBadge() {
+            const count = Object.keys(productosEnPedido).length;
+            const badge = document.getElementById('badgeCount');
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'flex' : 'none';
+        }
+
         function mostrarInfoTurno() {
             fetch('obtener_turno_actual.php')
                 .then(response => response.json())
@@ -600,6 +921,13 @@ foreach ($productos as $producto) {
 
             productosEnPedido[id].cantidad++;
             actualizarResumen();
+            actualizarBadge();
+
+            // Feedback visual
+            elemento.style.background = '#d4edda';
+            setTimeout(() => {
+                elemento.style.background = 'white';
+            }, 200);
         }
 
         function cambiarCantidad(id, cambio) {
@@ -609,6 +937,7 @@ foreach ($productos as $producto) {
                     delete productosEnPedido[id];
                 }
                 actualizarResumen();
+                actualizarBadge();
             }
         }
 
@@ -617,7 +946,6 @@ foreach ($productos as $producto) {
             lista.innerHTML = '';
             let total = 0;
 
-            // Agregar información del turno al resumen
             const turnoInfo = document.createElement('div');
             turnoInfo.className = 'info-turno-pedido';
             turnoInfo.textContent = `Turno: ${turnoActual === 'mañana' ? 'MEDIODÍA' : 'NOCHE'}`;
@@ -683,9 +1011,20 @@ foreach ($productos as $producto) {
             });
         }
 
+        // Prevenir zoom en doble tap en iOS
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
         // Inicializar al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
             mostrarInfoTurno();
+            actualizarBadge();
         });
     </script>
 </body>
