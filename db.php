@@ -1,13 +1,25 @@
 <?php
+// DEJA TUS DATOS ORIGINALES AQUÍ - NO LOS CAMBIES
 $host = 'localhost';
-$dbname = 'safariv2';
-$username = 'root';
-$password = '';
+$db   = 'safariv2'; // tu base de datos real
+$user = 'root';     // tu usuario real  
+$pass = '';         // tu password real
+$charset = 'utf8mb4';
+
+$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+$options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES   => false,
+];
 
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    die("Error de conexión: " . $e->getMessage());
+    $pdo = new PDO($dsn, $user, $pass, $options);
+    
+    // SOLO AGREGA ESTA LÍNEA - NO CAMBIES LO DEMÁS
+    $pdo->exec("SET time_zone = '-04:00'");
+    
+} catch (PDOException $e) {
+    throw new PDOException($e->getMessage(), (int)$e->getCode());
 }
 ?>

@@ -7,7 +7,7 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['rol'] != 'admin') {
     exit;
 }
 
-// Obtener parámetros del reporte (POST para la página, GET para exportar)
+// Obtener parámetros del reporte
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $periodo = $_POST['periodo'] ?? 'dia';
     $fecha = $_POST['fecha'] ?? date('Y-m-d');
@@ -24,10 +24,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $turno = $_GET['turno'] ?? 'todos';
 }
 
-// Calcular fechas según el período
-list($fecha_inicio_real, $fecha_fin_real) = calcularFechasPeriodo($periodo, $fecha, $fecha_inicio, $fecha_fin);
+// DEBUG: Ver qué está llegando
+error_log("PERIODO: $periodo, FECHA: $fecha, INICIO: $fecha_inicio, FIN: $fecha_fin");
 
-// Consulta base para obtener ventas
+// Calcular fechas según el período CORREGIDO
+if ($periodo === 'rango') {
+    $fecha_inicio_real = $fecha_inicio;
+    $fecha_fin_real = $fecha_fin;
+} else {
+    list($fecha_inicio_real, $fecha_fin_real) = calcularFechasPeriodo($periodo, $fecha, $fecha_inicio, $fecha_fin);
+}
+
+error_log("FECHAS REALES: $fecha_inicio_real a $fecha_fin_real");
+
+// CONSULTA BASE MEJORADA
 $sql = "SELECT 
             p.id,
             p.total,
@@ -42,10 +52,10 @@ $sql = "SELECT
         LEFT JOIN caja_control c ON p.caja_id = c.id
         LEFT JOIN usuarios u ON c.usuario_id = u.id
         WHERE p.estado = 'pagado'
-        AND p.fecha_pago BETWEEN ? AND ?
+        AND DATE(p.fecha_pago) BETWEEN ? AND ?
         AND p.metodo_pago IS NOT NULL";
 
-$params = [$fecha_inicio_real . ' 00:00:00', $fecha_fin_real . ' 23:59:59'];
+$params = [$fecha_inicio_real, $fecha_fin_real];
 
 // Aplicar filtro de cajero
 if ($cajero_id !== 'todos') {
@@ -65,7 +75,31 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $ventas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Calcular totales
+error_log("VENTAS ENCONTRADAS: " . count($ventas));
+
+// Verificar si hay datos
+$hay_datos = count($ventas) > 0;
+
+// Formatear fecha para mostrar
+$fecha_mostrar = obtenerTextoPeriodo($periodo, $fecha_inicio_real, $fecha_fin_real);
+
+if (!$hay_datos) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => true,
+        'hay_datos' => false,
+        'mensaje' => "No hay ventas registradas para el período seleccionado",
+        'fecha_consultada' => $fecha_mostrar,
+        'fecha_seleccionada' => $fecha_mostrar,
+        'fecha_inicio' => $fecha_inicio_real,
+        'fecha_fin' => $fecha_fin_real,
+        'periodo' => $periodo,
+        'total_ventas' => 0
+    ]);
+    exit;
+}
+
+// SI HAY DATOS - Calcular totales
 $totales = [
     'efectivo' => 0,
     'qr' => 0,
@@ -92,13 +126,13 @@ foreach ($ventas as $venta) {
     }
 }
 
-// Obtener detalle por turnos
+// Obtener detalle por turnos MEJORADO
 $detalle_turnos = obtenerDetalleTurnos($pdo, $fecha_inicio_real, $fecha_fin_real, $cajero_id, $turno);
 
 // Si se solicita exportar a Excel
 if (isset($_GET['exportar']) && $_GET['exportar'] == 'excel') {
     header('Content-Type: application/vnd.ms-excel');
-    header('Content-Disposition: attachment; filename="reporte_ventas_' . date('Y-m-d') . '.xls"');
+    header('Content-Disposition: attachment; filename="reporte_ventas_' . $fecha_inicio_real . '.xls"');
     header('Pragma: no-cache');
     header('Expires: 0');
     
@@ -106,6 +140,7 @@ if (isset($_GET['exportar']) && $_GET['exportar'] == 'excel') {
     
     echo "<table border='1'>";
     echo "<tr><th colspan='4' style='background:#667eea;color:white;'><h3>$titulo</h3></th></tr>";
+    
     echo "<tr style='background:#f8f9fa;font-weight:bold;'>";
     echo "<th>Método de Pago</th>";
     echo "<th>Cantidad de Ventas</th>";
@@ -180,34 +215,36 @@ if (isset($_GET['exportar']) && $_GET['exportar'] == 'excel') {
 header('Content-Type: application/json');
 echo json_encode([
     'success' => true,
+    'hay_datos' => true,
     'totales' => $totales,
     'cantidades' => $cantidades,
     'detalle_turnos' => $detalle_turnos,
     'fecha_inicio' => $fecha_inicio_real,
     'fecha_fin' => $fecha_fin_real,
+    'fecha_seleccionada' => $fecha_mostrar,
+    'fecha_consultada' => $fecha_mostrar,
     'periodo' => $periodo,
     'total_ventas' => count($ventas)
 ]);
 
-// FUNCIONES AUXILIARES
-
+// FUNCIONES AUXILIARES CORREGIDAS
 function calcularFechasPeriodo($periodo, $fecha, $fecha_inicio, $fecha_fin) {
     switch ($periodo) {
         case 'dia':
             return [$fecha, $fecha];
             
         case 'semana':
-            // Obtener lunes y domingo de la semana
+            // Semana completa (lunes a domingo) de la fecha seleccionada
             $fecha_obj = new DateTime($fecha);
             $lunes = clone $fecha_obj->modify('Monday this week');
             $domingo = clone $fecha_obj->modify('Sunday this week');
             return [$lunes->format('Y-m-d'), $domingo->format('Y-m-d')];
             
         case 'mes':
-            // Primer y último día del mes
+            // Mes completo de la fecha seleccionada
             $fecha_obj = new DateTime($fecha);
-            $primer_dia = $fecha_obj->modify('first day of this month')->format('Y-m-d');
-            $ultimo_dia = $fecha_obj->modify('last day of this month')->format('Y-m-d');
+            $primer_dia = $fecha_obj->format('Y-m-01'); // Primer día del mes
+            $ultimo_dia = $fecha_obj->format('Y-m-t');  // Último día del mes
             return [$primer_dia, $ultimo_dia];
             
         case 'rango':
@@ -233,10 +270,10 @@ function obtenerDetalleTurnos($pdo, $fecha_inicio, $fecha_fin, $cajero_id, $filt
             LEFT JOIN caja_control c ON p.caja_id = c.id
             LEFT JOIN usuarios u ON c.usuario_id = u.id
             WHERE p.estado = 'pagado'
-            AND p.fecha_pago BETWEEN ? AND ?
+            AND DATE(p.fecha_pago) BETWEEN ? AND ?
             AND p.metodo_pago IS NOT NULL";
     
-    $params = [$fecha_inicio . ' 00:00:00', $fecha_fin . ' 23:59:59'];
+    $params = [$fecha_inicio, $fecha_fin];
     
     if ($cajero_id !== 'todos') {
         $sql .= " AND c.usuario_id = ?";
@@ -249,7 +286,7 @@ function obtenerDetalleTurnos($pdo, $fecha_inicio, $fecha_fin, $cajero_id, $filt
     }
     
     $sql .= " GROUP BY DATE(p.fecha_pago), p.turno, c.usuario_id
-              ORDER BY fecha DESC, p.turno";
+              ORDER BY fecha DESC, p.turno ASC";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
@@ -284,17 +321,33 @@ function obtenerDetalleTurnos($pdo, $fecha_inicio, $fecha_fin, $cajero_id, $filt
 }
 
 function obtenerTextoPeriodo($periodo, $fecha_inicio, $fecha_fin) {
+    $fecha_inicio_obj = new DateTime($fecha_inicio);
+    $fecha_fin_obj = new DateTime($fecha_fin);
+    
     switch ($periodo) {
         case 'dia':
-            return date('d/m/Y', strtotime($fecha_inicio));
+            return $fecha_inicio_obj->format('d/m/Y');
+            
         case 'semana':
-            return 'Semana del ' . date('d/m/Y', strtotime($fecha_inicio)) . ' al ' . date('d/m/Y', strtotime($fecha_fin));
+            return 'Semana del ' . $fecha_inicio_obj->format('d/m/Y') . ' al ' . $fecha_fin_obj->format('d/m/Y');
+            
         case 'mes':
-            return date('F Y', strtotime($fecha_inicio));
+            // Usar nombres de meses en español
+            $meses = [
+                'January' => 'Enero', 'February' => 'Febrero', 'March' => 'Marzo',
+                'April' => 'Abril', 'May' => 'Mayo', 'June' => 'Junio',
+                'July' => 'Julio', 'August' => 'Agosto', 'September' => 'Septiembre',
+                'October' => 'Octubre', 'November' => 'Noviembre', 'December' => 'Diciembre'
+            ];
+            $mes_ingles = $fecha_inicio_obj->format('F');
+            $mes_espanol = $meses[$mes_ingles] ?? $mes_ingles;
+            return $mes_espanol . ' ' . $fecha_inicio_obj->format('Y');
+            
         case 'rango':
-            return 'Del ' . date('d/m/Y', strtotime($fecha_inicio)) . ' al ' . date('d/m/Y', strtotime($fecha_fin));
+            return 'Del ' . $fecha_inicio_obj->format('d/m/Y') . ' al ' . $fecha_fin_obj->format('d/m/Y');
+            
         default:
-            return date('d/m/Y');
+            return $fecha_inicio_obj->format('d/m/Y');
     }
 }
 ?>

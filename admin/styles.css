@@ -319,3 +319,21 @@ body {
     background: #e8f5e8 !important;
     font-weight: bold;
 }
+
+/* ESTILOS PARA PRODUCTOS */
+.badge-plato_principal {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+}
+
+.badge-acompanamiento {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+}
+
+.badge-bebida {
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    color: white;
+}
+/* Fin estilos para productos */
+/* Fin estilos mejorados para mesas */
