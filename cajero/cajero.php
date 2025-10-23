@@ -54,6 +54,7 @@ foreach ($todos_productos as $p) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>Cajero - Safari</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -1010,6 +1011,79 @@ foreach ($todos_productos as $p) {
         font-size: 1.5rem;
     }
 }
+/* Spinner para loading */
+.spinner-reporte {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+/* ESTILOS PARA REPORTE DETALLADO */
+.resumen-detalle {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-top: 5px;
+}
+
+.chart-container {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    margin: 30px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.reporte-turno {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border-left: 5px solid #3498db;
+}
+
+.reporte-cajero {
+    background: white;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* Mejoras para la tabla */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+tfoot {
+    background: #2c3e50;
+    color: white;
+    font-weight: bold;
+}
     </style>
 </head>
 <body>
@@ -1050,65 +1124,37 @@ foreach ($todos_productos as $p) {
             <!-- SECCIÓN PEDIDOS -->
             <div class="section-content" id="section-pedidos">
                 <?php if ($caja_abierta): ?>
-                    <h2 style="margin-bottom: 20px;">Pedidos Activos</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0;">Pedidos</h2>
+                        <small style="color: #95a5a6;">
+                            Última actualización: <span id="ultimaActualizacionPedidos">--:--:--</span>
+                        </small>
+                    </div>
                     <div class="pedidos-grid" id="pedidosGrid">
-                        <?php foreach ($pedidos as $pedido): 
-                            $stmt_items = $pdo->prepare("
-                                SELECT pi.*, pr.nombre 
-                                FROM pedido_items pi
-                                INNER JOIN productos pr ON pi.producto_id = pr.id
-                                WHERE pi.pedido_id = ?
-                            ");
-                            $stmt_items->execute([$pedido['id']]);
-                            $items = $stmt_items->fetchAll(PDO::FETCH_ASSOC);
-                            
-                            $hora = date('H:i', strtotime($pedido['fecha_pedido']));
-                        ?>
-                        <div class="pedido-card">
-                            <div class="pedido-header">
-                                <div class="pedido-mesa">Mesa <?php echo $pedido['mesa_numero']; ?></div>
-                                <div class="pedido-hora"><?php echo $hora; ?></div>
-                            </div>
-                            
-                            <div class="pedido-info">
-                                <div class="info-row">
-                                    <span class="info-label">Garzón:</span>
-                                    <span class="info-value"><?php echo $pedido['garzon_nombre']; ?></span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">Items:</span>
-                                    <span class="info-value"><?php echo $pedido['total_items']; ?></span>
-                                </div>
-                            </div>
-                            
-                            <div class="pedido-items">
-                                <?php foreach ($items as $item): ?>
-                                    <div class="item-row">
-                                        <span><?php echo $item['cantidad']; ?>x <?php echo $item['nombre']; ?></span>
-                                        <span>Bs. <?php echo number_format($item['precio_unitario'] * $item['cantidad'], 2); ?></span>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                            
-                            <div class="pedido-total">
-                                TOTAL: Bs. <?php echo number_format($pedido['total'], 2); ?>
-                            </div>
-                            
-                            <div class="pedido-actions">
-                                <button class="btn-action btn-pagar" 
-                                        onclick='abrirModalPago(<?php echo json_encode($pedido); ?>, <?php echo json_encode($items); ?>)'>
-                                    PAGAR
-                                </button>
-                                <button class="btn-action btn-editar" onclick="editarPedido(<?php echo $pedido['id']; ?>)">
-                                    EDITAR
-                                </button>
-                                <button class="btn-action btn-eliminar" onclick="eliminarPedido(<?php echo $pedido['id']; ?>)">
-                                    ELIMINAR
-                                </button>
+                            <!-- Los pedidos se cargarán dinámicamente aquí -->
+                        </div>
+
+                        <!-- Estado de carga -->
+                        <div id="pedidosLoading" style="text-align: center; padding: 40px;">
+                            <div class="spinner-reporte" style="margin: 0 auto 15px;"></div>
+                            <p style="color: #667eea;">Cargando pedidos...</p>
+                        </div>
+
+                        <!-- Estado vacío -->
+                        <div id="pedidosVacio" style="display: none; text-align: center; padding: 40px; color: #7f8c8d;">
+                            <div style="font-size: 4rem; margin-bottom: 15px;">📭</div>
+                            <h4>No hay pedidos activos</h4>
+                            <p>Los pedidos aparecerán aquí cuando sean creados</p>
+                        </div>
+
+                        <!-- Estado caja cerrada -->
+                        <div id="pedidosCajaCerrada" style="display: none;">
+                            <div class="caja-status caja-cerrada">
+                                <div class="status-icon">🔒</div>
+                                <div class="status-text">CAJA CERRADA</div>
+                                <p style="color: #7f8c8d; font-size: 1.1rem;">Debe abrir la caja antes de procesar pedidos</p>
                             </div>
                         </div>
-                        <?php endforeach; ?>
-                    </div>
                 <?php else: ?>
                     <div class="caja-status caja-cerrada">
                         <div class="status-icon">🔒</div>
@@ -1409,27 +1455,43 @@ foreach ($todos_productos as $p) {
         <small style="color: #95a5a6;">
             Última actualización: <span id="ultimaActualizacion">--:--:--</span>
         </small>
-    </div>
+    </div>|
 </div>
-
-          <!-- SECCIÓN REPORTES -->
+<!-- SECCIÓN REPORTES -->
+<!-- SECCIÓN REPORTES -->
 <div class="section-content" id="section-reportes">
     <h2 style="margin-bottom: 20px; color: #2c3e50;">📊 Reportes de Ventas</h2>
     
     <!-- FILTROS -->
-    <div class="caja-info" style="margin-bottom: 20px;">
-        <div class="form-header" style="margin-bottom: 20px;">
-            <h4>🔍 Filtros del Reporte</h4>
-            <p style="color: #7f8c8d; margin: 0;">Seleccione los criterios para generar el reporte</p>
-        </div>
-        
-        <div class="row">
-            <div class="col-md-4 mb-3">
-                <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">📅 Fecha</label>
-                <input type="date" class="cantidad-input" id="filtroFecha" 
-                       value="<?php echo date('Y-m-d'); ?>">
+    <!-- FILTROS MEJORADOS -->
+<div class="caja-info" style="margin-bottom: 20px;">
+    <div class="form-header" style="margin-bottom: 20px;">
+        <h4>🔍 Filtros Avanzados del Reporte</h4>
+        <p style="color: #7f8c8d; margin: 0;">Seleccione el período y criterios para el reporte</p>
+    </div>
+    
+    <!-- SELECTOR DE PERÍODO -->
+    <div style="margin-bottom: 20px;">
+        <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">
+            📅 Período del Reporte
+        </label>
+        <select class="cantidad-input" id="filtroPeriodo" onchange="cambiarPeriodo()">
+            <option value="dia">📊 Por Día (Específico)</option>
+            <option value="semana">📅 Por Semana (Completa)</option>
+            <option value="mes">🗓️ Por Mes (Completo)</option>
+            <option value="rango">📆 Por Rango Personalizado</option>
+        </select>
+    </div>
+
+    <!-- FILTROS DINÁMICOS SEGÚN PERIODO -->
+    <div id="filtrosDinamicos">
+        <!-- POR DÍA -->
+        <div class="row" id="filtroDia">
+            <div class="col-md-6 mb-3">
+                <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">📅 Fecha Específica</label>
+                <input type="date" class="cantidad-input" id="filtroFecha" value="<?php echo date('Y-m-d'); ?>">
             </div>
-            <div class="col-md-4 mb-3">
+            <div class="col-md-6 mb-3">
                 <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">🕐 Turno</label>
                 <select class="cantidad-input" id="filtroTurno">
                     <option value="todos">Todos los turnos</option>
@@ -1437,30 +1499,87 @@ foreach ($todos_productos as $p) {
                     <option value="noche">🌙 Turno Noche</option>
                 </select>
             </div>
-            <div class="col-md-4 mb-3">
-                <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">👤 Cajero</label>
-                <select class="cantidad-input" id="filtroCajero">
-                    <option value="todos">Todos los cajeros</option>
-                    <?php
-                    $stmt_cajeros = $pdo->prepare("SELECT id, nombre FROM usuarios WHERE rol = 'cajero' ORDER BY nombre");
-                    $stmt_cajeros->execute();
-                    $cajeros = $stmt_cajeros->fetchAll(PDO::FETCH_ASSOC);
-                    foreach ($cajeros as $cajero) {
-                        echo "<option value='{$cajero['id']}'>{$cajero['nombre']}</option>";
-                    }
-                    ?>
+        </div>
+
+        <!-- POR SEMANA -->
+        <div class="row" id="filtroSemana" style="display: none;">
+            <div class="col-md-6 mb-3">
+                <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">📅 Semana del</label>
+                <input type="date" class="cantidad-input" id="filtroFechaSemana" value="<?php echo date('Y-m-d'); ?>">
+                <small style="color: #7f8c8d; margin-top: 5px; display: block;">
+                    Se mostrará la semana completa (lunes a domingo)
+                </small>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">🕐 Filtro por Turno</label>
+                <select class="cantidad-input" id="filtroTurnoSemana">
+                    <option value="todos">Todos los turnos</option>
+                    <option value="mañana">Solo turno mañana</option>
+                    <option value="noche">Solo turno noche</option>
                 </select>
             </div>
         </div>
-        <div class="row">
-            <div class="col-12">
-                <button type="button" class="btn-abrir-caja" onclick="generarReporte()" 
-                        style="margin-top: 10px;">
-                    📈 GENERAR REPORTE
-                </button>
+
+        <!-- POR MES -->
+        <div class="row" id="filtroMes" style="display: none;">
+            <div class="col-md-6 mb-3">
+                <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">🗓️ Mes</label>
+                <input type="month" class="cantidad-input" id="filtroMesSeleccionado" value="<?php echo date('Y-m'); ?>">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">🕐 Filtro por Turno</label>
+                <select class="cantidad-input" id="filtroTurnoMes">
+                    <option value="todos">Todos los turnos</option>
+                    <option value="mañana">Solo turno mañana</option>
+                    <option value="noche">Solo turno noche</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- POR RANGO -->
+        <div class="row" id="filtroRango" style="display: none;">
+            <div class="col-md-6 mb-3">
+                <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">📅 Fecha Inicio</label>
+                <input type="date" class="cantidad-input" id="filtroFechaInicio" value="<?php echo date('Y-m-01'); ?>">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">📅 Fecha Fin</label>
+                <input type="date" class="cantidad-input" id="filtroFechaFin" value="<?php echo date('Y-m-d'); ?>">
+            </div>
+            <div class="col-md-12 mb-3">
+                <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">🕐 Filtro por Turno</label>
+                <select class="cantidad-input" id="filtroTurnoRango">
+                    <option value="todos">Todos los turnos</option>
+                    <option value="mañana">Solo turno mañana</option>
+                    <option value="noche">Solo turno noche</option>
+                </select>
             </div>
         </div>
     </div>
+
+    <!-- FILTRO CAJERO (SIEMPRE VISIBLE) -->
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">👤 Cajero</label>
+            <select class="cantidad-input" id="filtroCajero">
+                <option value="todos">Todos los cajeros</option>
+                <?php
+                $stmt_cajeros = $pdo->prepare("SELECT id, nombre FROM usuarios WHERE rol = 'cajero' ORDER BY nombre");
+                $stmt_cajeros->execute();
+                $cajeros = $stmt_cajeros->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($cajeros as $cajero) {
+                    echo "<option value='{$cajero['id']}'>{$cajero['nombre']}</option>";
+                }
+                ?>
+            </select>
+        </div>
+        <div class="col-md-6 mb-3" style="display: flex; align-items: end;">
+            <button type="button" class="btn-abrir-caja" onclick="generarReporte()" style="width: 100%;">
+                📈 GENERAR REPORTE
+            </button>
+        </div>
+    </div>
+</div>
 
     <!-- RESULTADOS DEL REPORTE -->
     <div id="resultadoReporte">
@@ -1471,8 +1590,83 @@ foreach ($todos_productos as $p) {
             <p style="color: #95a5a6; font-size: 0.9rem;">Los resultados aparecerán aquí</p>
         </div>
     </div>
+
+    <!-- PLANTILLA PARA REPORTE DETALLADO (oculta inicialmente) -->
+    <div id="plantillaReporteDetallado" style="display: none;">
+        <div class="caja-info">
+            <h3 style="color: #2c3e50; margin-bottom: 20px; text-align: center; text-transform: uppercase;">
+                📈 Reporte Detallado de Ventas - <span class="fecha-reporte"></span>
+            </h3>
+            
+            <!-- RESUMEN GENERAL -->
+            <div class="reporte-resumen">
+                <h4 style="margin-bottom: 20px; text-align: center;">📊 Resumen General del Día</h4>
+                <div class="row text-center">
+                    <div class="col-md-3 resumen-item">
+                        <div class="resumen-label">TOTAL EFECTIVO</div>
+                        <div class="resumen-valor" id="resumenEfectivo">Bs. 0.00</div>
+                        <div class="resumen-detalle" id="detalleEfectivo">0 ventas</div>
+                    </div>
+                    <div class="col-md-3 resumen-item">
+                        <div class="resumen-label">TOTAL QR</div>
+                        <div class="resumen-valor" id="resumenQR">Bs. 0.00</div>
+                        <div class="resumen-detalle" id="detalleQR">0 ventas</div>
+                    </div>
+                    <div class="col-md-3 resumen-item">
+                        <div class="resumen-label">TOTAL MIXTO</div>
+                        <div class="resumen-valor" id="resumenMixto">Bs. 0.00</div>
+                        <div class="resumen-detalle" id="detalleMixto">0 ventas</div>
+                    </div>
+                    <div class="col-md-3 resumen-item">
+                        <div class="resumen-label">TOTAL RECAUDADO</div>
+                        <div class="resumen-valor" id="resumenTotal">Bs. 0.00</div>
+                        <div class="resumen-detalle" id="detalleTotal">0 ventas totales</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLA DETALLADA -->
+            <div style="margin-top: 30px;">
+                <h4 style="color: #2c3e50; margin-bottom: 15px;">📋 Detalle por Método de Pago</h4>
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <thead>
+                        <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            <th style="padding: 15px; text-align: left; font-weight: bold;">Método de Pago</th>
+                            <th style="padding: 15px; text-align: center; font-weight: bold;">Cantidad de Ventas</th>
+                            <th style="padding: 15px; text-align: right; font-weight: bold;">Monto Total</th>
+                            <th style="padding: 15px; text-align: right; font-weight: bold;">Porcentaje</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaMetodosPago">
+                        <!-- Los datos se llenarán dinámicamente -->
+                    </tbody>
+                    <tfoot>
+                        <tr style="background: #2c3e50; color: white; font-weight: bold;">
+                            <td style="padding: 15px; text-align: left;">TOTAL GENERAL</td>
+                            <td style="padding: 15px; text-align: center;" id="totalVentas">0</td>
+                            <td style="padding: 15px; text-align: right;" id="totalMonto">Bs. 0.00</td>
+                            <td style="padding: 15px; text-align: right;">100%</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- DETALLE POR TURNO Y CAJERO -->
+            <div id="detalleTurnos" style="margin-top: 30px;">
+                <!-- Se llenará dinámicamente -->
+            </div>
+
+            <!-- BOTONES DE ACCIÓN -->
+            <!-- BOTONES DE ACCIÓN -->
+                <div style="text-align: center; margin-top: 30px; padding: 20px;">
+                    <button onclick="exportarExcel()" class="btn-abrir-caja" style="width: auto; padding: 12px 25px; font-size: 1rem; background: #27ae60;">
+                        📊 Exportar a Excel
+                    </button>
+                </div>
+        </div>
+    </div>
 </div>
- <!-- FIN SECCIÓN REPORTES -->
+<!-- FIN SECCIÓN REPORTES -->
 
            <!-- SECCIÓN CONFIGURACIÓN -->
     <!-- MODAL PAGO -->
@@ -1496,8 +1690,9 @@ foreach ($todos_productos as $p) {
                 </div>
                 <div id="inputEfectivo" style="display: none;">
                     <input type="number" class="pago-input" id="montoEfectivo" 
-                           placeholder="Monto en efectivo" 
-                           oninput="calcularCambio()">
+                        placeholder="Monto en efectivo recibido" 
+                        oninput="calcularCambio()"
+                        step="0.01" min="0">
                 </div>
                 
                 <div class="pago-metodo" style="margin-top: 20px;">
@@ -1506,8 +1701,12 @@ foreach ($todos_productos as $p) {
                 </div>
                 <div id="inputQR" style="display: none;">
                     <input type="number" class="pago-input" id="montoQR" 
-                           placeholder="Monto por QR" 
-                           oninput="calcularCambio()">
+                        placeholder="Monto por QR" 
+                        oninput="calcularCambio()"
+                        step="0.01" min="0">
+                    <small style="color: #7f8c8d; display: block; margin-top: 5px;">
+                        <span id="qrHelpText">Se calculará automáticamente</span>
+                    </small>
                 </div>
             </div>
             
@@ -1630,6 +1829,162 @@ foreach ($todos_productos as $p) {
     </div>
 
     <script>
+        // VARIABLES PARA PEDIDOS
+            let intervaloPedidos = null;
+
+            // FUNCIONES PARA ACTUALIZACIÓN DE PEDIDOS EN TIEMPO REAL
+            function cargarPedidos() {
+                // Mostrar loading
+                document.getElementById('pedidosLoading').style.display = 'block';
+                document.getElementById('pedidosGrid').style.display = 'none';
+                document.getElementById('pedidosVacio').style.display = 'none';
+                document.getElementById('pedidosCajaCerrada').style.display = 'none';
+                
+                fetch('actualizar_pedidos.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Ocultar loading
+                        document.getElementById('pedidosLoading').style.display = 'none';
+                        
+                        if (data.success) {
+                            // Actualizar timestamp
+                            if (data.timestamp) {
+                                document.getElementById('ultimaActualizacionPedidos').textContent = data.timestamp;
+                            }
+                            
+                            if (!data.caja_abierta) {
+                                // Mostrar estado de caja cerrada
+                                document.getElementById('pedidosCajaCerrada').style.display = 'block';
+                                return;
+                            }
+                            
+                            if (data.pedidos.length === 0) {
+                                // Mostrar estado vacío
+                                document.getElementById('pedidosVacio').style.display = 'block';
+                                return;
+                            }
+                            
+                            // Mostrar pedidos
+                            document.getElementById('pedidosGrid').style.display = 'grid';
+                            mostrarPedidos(data.pedidos);
+                        } else {
+                            mostrarErrorPedidos('Error al cargar pedidos: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        document.getElementById('pedidosLoading').style.display = 'none';
+                        mostrarErrorPedidos('Error de conexión: ' + error);
+                    });
+            }
+
+            function mostrarPedidos(pedidos) {
+                const grid = document.getElementById('pedidosGrid');
+                let html = '';
+                
+                pedidos.forEach(pedido => {
+                    const hora = new Date(pedido.fecha_pedido).toLocaleTimeString('es-ES', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    let itemsHTML = '';
+                    if (pedido.items && pedido.items.length > 0) {
+                        pedido.items.forEach(item => {
+                            itemsHTML += `
+                                <div class="item-row">
+                                    <span>${item.cantidad}x ${item.nombre}</span>
+                                    <span>Bs. ${(item.precio_unitario * item.cantidad).toFixed(2)}</span>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    // Determinar color del borde según estado
+                    let borderColor = '#3498db'; // Por defecto azul
+                    if (pedido.estado === 'preparacion') borderColor = '#f39c12'; // Naranja
+                    if (pedido.estado === 'listo') borderColor = '#27ae60'; // Verde
+                    
+                    html += `
+                        <div class="pedido-card" style="border-left-color: ${borderColor};">
+                            <div class="pedido-header">
+                                <div class="pedido-mesa">Mesa ${pedido.mesa_numero}</div>
+                                <div class="pedido-hora">${hora}</div>
+                            </div>
+                            
+                            <div class="pedido-info">
+                                <div class="info-row">
+                                    <span class="info-label">Garzón:</span>
+                                    <span class="info-value">${pedido.garzon_nombre}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Items:</span>
+                                    <span class="info-value">${pedido.total_items}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Estado:</span>
+                                    <span class="info-value" style="color: ${borderColor}; font-weight: bold;">
+                                        ${pedido.estado.toUpperCase()}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="pedido-items">
+                                ${itemsHTML}
+                            </div>
+                            
+                            <div class="pedido-total">
+                                TOTAL: Bs. ${parseFloat(pedido.total).toFixed(2)}
+                            </div>
+                            
+                            <div class="pedido-actions">
+                                <button class="btn-action btn-pagar" 
+                                        onclick='abrirModalPago(${JSON.stringify(pedido)}, ${JSON.stringify(pedido.items || [])})'>
+                                    PAGAR
+                                </button>
+                                <button class="btn-action btn-editar" onclick="editarPedido(${pedido.id})">
+                                    EDITAR
+                                </button>
+                                <button class="btn-action btn-eliminar" onclick="eliminarPedido(${pedido.id})">
+                                    ELIMINAR
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                grid.innerHTML = html;
+            }
+
+            function mostrarErrorPedidos(mensaje) {
+                const grid = document.getElementById('pedidosGrid');
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #e74c3c;">
+                        <div style="font-size: 4rem; margin-bottom: 15px;">❌</div>
+                        <h4>Error al cargar pedidos</h4>
+                        <p>${mensaje}</p>
+                        <button class="btn-abrir-caja" onclick="cargarPedidos()" 
+                                style="width: auto; padding: 10px 20px; font-size: 0.9rem; margin-top: 15px;">
+                            🔄 Reintentar
+                        </button>
+                    </div>
+                `;
+            }
+
+            // ACTUALIZACIÓN AUTOMÁTICA DE PEDIDOS
+            function iniciarActualizacionPedidos() {
+                // Cargar pedidos inmediatamente
+                cargarPedidos();
+                
+                // Actualizar cada 25 segundos
+                intervaloPedidos = setInterval(cargarPedidos, 25000);
+            }
+
+            function detenerActualizacionPedidos() {
+                if (intervaloPedidos) {
+                    clearInterval(intervaloPedidos);
+                    intervaloPedidos = null;
+                }
+            }
         let pedidoActual = null;
         let pedidoEditando = null;
         let productosEditando = {};
@@ -1644,9 +1999,10 @@ foreach ($todos_productos as $p) {
             document.getElementById('sidebar').classList.toggle('collapsed');
         }
         
-        function cambiarSeccion(seccion) {
-            // Detener actualización anterior si existe
+       function cambiarSeccion(seccion) {
+            // Detener actualizaciones anteriores
             detenerActualizacionMesas();
+            detenerActualizacionPedidos();
             
             // Ocultar todas las secciones
             document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
@@ -1656,9 +2012,11 @@ foreach ($todos_productos as $p) {
             document.getElementById('section-' + seccion).classList.add('active');
             event.currentTarget.classList.add('active');
             
-            // Si es la sección de mesas, iniciar actualización automática
+            // Iniciar actualizaciones específicas de cada sección
             if (seccion === 'mesas') {
                 iniciarActualizacionMesas();
+            } else if (seccion === 'pedidos') {
+                iniciarActualizacionPedidos();
             }
         }
         
@@ -1885,6 +2243,7 @@ function confirmarPago() {
             document.getElementById('cambioDisplay').style.display = 'none';
             
             document.getElementById('modalPago').classList.add('show');
+            setTimeout(configurarEventListenersPago, 100);
         }
         
         function cerrarModalPago() {
@@ -1892,15 +2251,35 @@ function confirmarPago() {
             pedidoActual = null;
         }
         
-        function toggleMetodoPago(metodo) {
+       function toggleMetodoPago(metodo) {
             const check = document.getElementById(`check${metodo.charAt(0).toUpperCase() + metodo.slice(1)}`);
             const input = document.getElementById(`input${metodo.charAt(0).toUpperCase() + metodo.slice(1)}`);
+            const inputField = document.getElementById(`monto${metodo.charAt(0).toUpperCase() + metodo.slice(1)}`);
             
             if (check.checked) {
                 input.style.display = 'block';
+                
+                // Si es QR y es el único método seleccionado, poner el total automáticamente y bloquear
+                if (metodo === 'qr' && !document.getElementById('checkEfectivo').checked) {
+                    inputField.value = parseFloat(pedidoActual.total).toFixed(2);
+                    inputField.readOnly = true;
+                    inputField.style.backgroundColor = '#f8f9fa';
+                } 
+                // Si es QR pero también está seleccionado efectivo (mixto), permitir editar
+                else if (metodo === 'qr' && document.getElementById('checkEfectivo').checked) {
+                    inputField.readOnly = false;
+                    inputField.style.backgroundColor = 'white';
+                    inputField.value = ''; // Limpiar para que el usuario ingrese el monto QR
+                }
+                // Si es efectivo, siempre permitir editar
+                else if (metodo === 'efectivo') {
+                    inputField.readOnly = false;
+                    inputField.style.backgroundColor = 'white';
+                    inputField.value = '';
+                }
             } else {
                 input.style.display = 'none';
-                document.getElementById(`monto${metodo.charAt(0).toUpperCase() + metodo.slice(1)}`).value = '';
+                inputField.value = '';
             }
             calcularCambio();
         }
@@ -1909,33 +2288,70 @@ function confirmarPago() {
             if (!pedidoActual) return;
             
             const total = parseFloat(pedidoActual.total);
-            const efectivo = parseFloat(document.getElementById('montoEfectivo').value) || 0;
-            const qr = parseFloat(document.getElementById('montoQR').value) || 0;
+            let efectivo = parseFloat(document.getElementById('montoEfectivo').value) || 0;
+            let qr = parseFloat(document.getElementById('montoQR').value) || 0;
             const pagado = efectivo + qr;
             const diferencia = pagado - total;
             
             const cambioDiv = document.getElementById('cambioDisplay');
             
-            if (pagado > 0) {
+            // Si solo QR está seleccionado, calcular automáticamente el monto QR faltante
+            if (document.getElementById('checkQR').checked && !document.getElementById('checkEfectivo').checked) {
+                qr = total; // Siempre usar el total completo para QR único
+                document.getElementById('montoQR').value = total.toFixed(2);
+            }
+            
+            // Si es mixto, calcular automáticamente el QR como el faltante
+            if (document.getElementById('checkQR').checked && document.getElementById('checkEfectivo').checked) {
+                const qrInput = document.getElementById('montoQR');
+                if (!qrInput.readOnly) { // Solo si está editable (mixto)
+                    const faltante = total - efectivo;
+                    if (faltante > 0) {
+                        qrInput.value = faltante.toFixed(2);
+                        qr = faltante;
+                    } else {
+                        qrInput.value = '0.00';
+                        qr = 0;
+                    }
+                }
+            }
+            
+            const pagadoFinal = efectivo + qr;
+            const diferenciaFinal = pagadoFinal - total;
+            
+            if (pagadoFinal > 0) {
                 cambioDiv.style.display = 'block';
                 
-                if (diferencia >= 0) {
+                if (diferenciaFinal >= 0) {
                     cambioDiv.className = 'cambio-display positivo';
                     cambioDiv.innerHTML = `
-                        <div style="font-size: 1rem;">CAMBIO</div>
-                        <div style="font-size: 1.8rem; font-weight: bold;">Bs. ${diferencia.toFixed(2)}</div>
+                        <div style="font-size: 1rem;">CAMBIO A ENTREGAR</div>
+                        <div style="font-size: 1.8rem; font-weight: bold;">Bs. ${diferenciaFinal.toFixed(2)}</div>
                     `;
                 } else {
                     cambioDiv.className = 'cambio-display';
                     cambioDiv.innerHTML = `
-                        <div style="font-size: 1rem;">FALTA</div>
-                        <div style="font-size: 1.8rem; font-weight: bold;">Bs. ${Math.abs(diferencia).toFixed(2)}</div>
+                        <div style="font-size: 1rem;">FALTA POR PAGAR</div>
+                        <div style="font-size: 1.8rem; font-weight: bold;">Bs. ${Math.abs(diferenciaFinal).toFixed(2)}</div>
                     `;
                 }
             } else {
                 cambioDiv.style.display = 'none';
             }
         }
+        function configurarEventListenersPago() {
+                const montoEfectivo = document.getElementById('montoEfectivo');
+                if (montoEfectivo) {
+                    // Agregar event listener para cambios en efectivo
+                    montoEfectivo.addEventListener('input', function() {
+                        // Si es pago mixto, recalcular automáticamente el QR
+                        if (document.getElementById('checkEfectivo').checked && 
+                            document.getElementById('checkQR').checked) {
+                            calcularCambio();
+                        }
+                    });
+                }
+            }
         
         function confirmarPago() {
             if (!pedidoActual) return;
@@ -1946,26 +2362,50 @@ function confirmarPago() {
             }
             
             const total = parseFloat(pedidoActual.total);
-            const efectivo = parseFloat(document.getElementById('montoEfectivo').value) || 0;
-            const qr = parseFloat(document.getElementById('montoQR').value) || 0;
-            const pagado = efectivo + qr;
+            let efectivo = parseFloat(document.getElementById('montoEfectivo').value) || 0;
+            let qr = parseFloat(document.getElementById('montoQR').value) || 0;
             const nota = document.getElementById('notaPago').value;
             
-            if (pagado < total) {
-                alert('El monto pagado es menor al total');
-                return;
-            }
-            
+            // Validaciones
             if (!document.getElementById('checkEfectivo').checked && !document.getElementById('checkQR').checked) {
                 alert('Debe seleccionar al menos un método de pago');
                 return;
             }
             
+            // Si solo QR está seleccionado, usar el total completo
+            if (document.getElementById('checkQR').checked && !document.getElementById('checkEfectivo').checked) {
+                qr = total;
+                document.getElementById('montoQR').value = total.toFixed(2);
+            }
+            
+            // Si solo efectivo está seleccionado, validar que se ingrese monto
+            if (document.getElementById('checkEfectivo').checked && !document.getElementById('checkQR').checked) {
+                if (efectivo <= 0) {
+                    alert('Por favor ingrese el monto en efectivo');
+                    document.getElementById('montoEfectivo').focus();
+                    return;
+                }
+            }
+            
+            const pagado = efectivo + qr;
+            const cambio = pagado - total;
+            
+            if (pagado < total) {
+                alert(`El monto pagado (Bs. ${pagado.toFixed(2)}) es menor al total del pedido (Bs. ${total.toFixed(2)})`);
+                return;
+            }
+            
+            if (cambio < 0) {
+                alert(`Falta por pagar: Bs. ${Math.abs(cambio).toFixed(2)}`);
+                return;
+            }
+            
+            // Confirmar pago
             const formData = new FormData();
             formData.append('pedido_id', pedidoActual.id);
             formData.append('efectivo', efectivo);
             formData.append('qr', qr);
-            formData.append('cambio', pagado - total);
+            formData.append('cambio', cambio);
             formData.append('nota', nota);
             formData.append('caja_id', cajaActual.id);
             
@@ -1977,7 +2417,11 @@ function confirmarPago() {
             .then(data => {
                 if (data.success) {
                     alert('✅ Pago procesado exitosamente');
-                    location.reload();
+                    cerrarModalPago();
+                    // Recargar pedidos si estamos en esa sección
+                    if (document.getElementById('section-pedidos').classList.contains('active')) {
+                        cargarPedidos();
+                    }
                 } else {
                     alert('❌ Error: ' + data.message);
                 }
@@ -2385,226 +2829,657 @@ function confirmarPago() {
         }
         
         // FUNCIONES DE REPORTES
-        function generarReporte() {
-            const fecha = document.getElementById('filtroFecha').value;
-            const turno = document.getElementById('filtroTurno').value;
-            const cajero = document.getElementById('filtroCajero').value;
-            
-            if (!fecha) {
-                alert('Por favor seleccione una fecha');
-                return;
-            }
-            
-            // Mostrar loading
-        document.getElementById('resultadoReporte').innerHTML = `
-            <div style="text-align: center; padding: 40px;">
-                <div class="spinner-reporte"></div>
-                <p style="margin-top: 15px; color: #667eea; font-size: 1.1rem;">Generando reporte...</p>
-            </div>
-        `;
-            
-            const formData = new FormData();
-            formData.append('fecha', fecha);
-            formData.append('turno', turno);
-            formData.append('cajero_id', cajero);
-            
-            fetch('generar_reporte.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    mostrarResultadoReporte(data);
-                } else {
-                    alert('Error: ' + data.message);
-                    document.getElementById('resultadoReporte').innerHTML = `
-                        <div style="text-align: center; padding: 40px; color: #e74c3c;">
-                            <div style="font-size: 4rem; margin-bottom: 15px;">❌</div>
-                            <h4>Error al generar reporte</h4>
-                            <p>${data.message}</p>
-                        </div>
-                    `;
-                }
-            })
-            .catch(error => {
-                alert('Error de conexión: ' + error);
-                document.getElementById('resultadoReporte').innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #e74c3c;">
-                        <div style="font-size: 4rem; margin-bottom: 15px;">❌</div>
-                        <h4>Error de conexión</h4>
-                        <p>No se pudo conectar con el servidor</p>
-                    </div>
-                `;
-            });
+        // FUNCIONES DE REPORTES
+function generarReporte() {
+    const fecha = document.getElementById('filtroFecha').value;
+    const turno = document.getElementById('filtroTurno').value;
+    const cajero = document.getElementById('filtroCajero').value;
+    
+    if (!fecha) {
+        alert('Por favor seleccione una fecha');
+        return;
+    }
+    
+    // Mostrar loading
+    document.getElementById('resultadoReporte').innerHTML = `
+        <div style="text-align: center; padding: 40px;">
+            <div class="spinner-reporte"></div>
+            <p style="margin-top: 15px; color: #667eea; font-size: 1.1rem;">Generando reporte...</p>
+        </div>
+    `;
+    
+    const formData = new FormData();
+    formData.append('fecha', fecha);
+    formData.append('turno', turno);
+    formData.append('cajero_id', cajero);
+    
+    fetch('generar_reporte.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarResultadoReporte(data);
+        } else {
+            mostrarErrorReporte('Error: ' + data.message);
         }
+    })
+    .catch(error => {
+        mostrarErrorReporte('Error de conexión: ' + error);
+    });
+}
+
+// Inicio mostrarResultadoReporte
+function mostrarResultadoReporte(data) {
+    const { metodos_pago, ventas_turno, ventas_cajero, ventas_diarias, resumen, filtros } = data;
+    
+    // Si no hay datos, mostrar estado vacío
+    if (metodos_pago.length === 0 && ventas_turno.length === 0 && ventas_diarias.length === 0) {
+        mostrarErrorReporte('No se encontraron ventas para los filtros seleccionados');
+        return;
+    }
+
+    // Calcular totales por método de pago
+    let totalEfectivo = 0;
+    let totalQR = 0;
+    let totalMixto = 0;
+    let cantidadEfectivo = 0;
+    let cantidadQR = 0;
+    let cantidadMixto = 0;
+
+    // Procesar métodos de pago
+    metodos_pago.forEach(metodo => {
+        const total = parseFloat(metodo.total_ventas) || 0;
+        const cantidad = parseInt(metodo.cantidad_ventas) || 0;
         
-        // Mostrar resultados del reporte
-        function mostrarResultadoReporte(data) {
-            const { resumen, detalle, filtros } = data;
-            const fechaFormateada = new Date(filtros.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
+        switch(metodo.metodo_pago) {
+            case 'efectivo':
+                totalEfectivo = total;
+                cantidadEfectivo = cantidad;
+                break;
+            case 'qr':
+                totalQR = total;
+                cantidadQR = cantidad;
+                break;
+            case 'mixto':
+                totalMixto = total;
+                cantidadMixto = cantidad;
+                break;
+        }
+    });
+
+    const totalVentas = totalEfectivo + totalQR + totalMixto;
+    const totalPedidos = cantidadEfectivo + cantidadQR + cantidadMixto;
+
+    // Crear título según período
+    let tituloPeriodo = '';
+    let subtituloFiltros = '';
+    
+    switch(filtros.periodo) {
+        case 'dia':
+            const fechaDia = new Date(filtros.fecha + 'T00:00:00');
+            tituloPeriodo = fechaDia.toLocaleDateString('es-ES', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
             });
+            subtituloFiltros = `Día específico | Turno: ${filtros.turno === 'todos' ? 'Todos' : filtros.turno}`;
+            break;
             
-            let html = `
-                <div class="caja-info">
-                    <h3 style="color: #2c3e50; margin-bottom: 20px; text-align: center; text-transform: uppercase;">
-                        📈 Reporte de Ventas - ${fechaFormateada}
-                    </h3>
-                    
-                    <!-- RESUMEN GENERAL -->
-                    <div class="reporte-resumen">
-                        <h4 style="margin-bottom: 20px; text-align: center;">📊 Resumen General del Día</h4>
-                        <div class="row text-center">
-                            <div class="col-md-4 resumen-item">
-                                <div class="resumen-label">TOTAL VENTAS</div>
-                                <div class="resumen-valor">Bs. ${parseFloat(resumen.total_ventas || 0).toFixed(2)}</div>
-                            </div>
-                            <div class="col-md-4 resumen-item">
-                                <div class="resumen-label">TOTAL PEDIDOS</div>
-                                <div class="resumen-valor">${resumen.total_pedidos || 0}</div>
-                            </div>
-                            <div class="col-md-4 resumen-item">
-                                <div class="resumen-label">CAJEROS ACTIVOS</div>
-                                <div class="resumen-valor">${resumen.total_cajeros || 0}</div>
+        case 'semana':
+            const fechaSemana = new Date(filtros.fecha + 'T00:00:00');
+            const inicioSemana = new Date(fechaSemana);
+            inicioSemana.setDate(fechaSemana.getDate() - fechaSemana.getDay() + 1); // Lunes
+            const finSemana = new Date(inicioSemana);
+            finSemana.setDate(inicioSemana.getDate() + 6); // Domingo
+            
+            tituloPeriodo = `Semana del ${inicioSemana.toLocaleDateString('es-ES')} al ${finSemana.toLocaleDateString('es-ES')}`;
+            subtituloFiltros = `Semana completa | Turno: ${filtros.turno === 'todos' ? 'Todos' : filtros.turno}`;
+            break;
+            
+        case 'mes':
+            const [anio, mes] = filtros.fecha.split('-');
+            const fechaMes = new Date(anio, mes - 1, 1);
+            tituloPeriodo = fechaMes.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' });
+            subtituloFiltros = `Mes completo | Turno: ${filtros.turno === 'todos' ? 'Todos' : filtros.turno}`;
+            break;
+            
+        case 'rango':
+            const fechaInicio = new Date(filtros.fecha_inicio + 'T00:00:00');
+            const fechaFin = new Date(filtros.fecha_fin + 'T00:00:00');
+            tituloPeriodo = `Del ${fechaInicio.toLocaleDateString('es-ES')} al ${fechaFin.toLocaleDateString('es-ES')}`;
+            subtituloFiltros = `Rango personalizado | Turno: ${filtros.turno === 'todos' ? 'Todos' : filtros.turno}`;
+            break;
+    }
+
+    // Cajero info
+    const cajeroInfo = filtros.cajero_id === 'todos' ? 'Todos los cajeros' : 'Cajero específico';
+
+    // Crear HTML del reporte MEJORADO
+    let html = `
+        <div class="caja-info">
+            <h3 style="color: #2c3e50; margin-bottom: 10px; text-align: center; text-transform: uppercase;">
+                📈 Reporte Detallado de Ventas
+            </h3>
+            <h4 style="color: #667eea; margin-bottom: 5px; text-align: center;">${tituloPeriodo}</h4>
+            <p style="color: #7f8c8d; text-align: center; margin-bottom: 20px;">
+                ${subtituloFiltros} | ${cajeroInfo}
+            </p>
+            
+            <!-- RESUMEN GENERAL MEJORADO -->
+            <div class="reporte-resumen">
+                <h4 style="margin-bottom: 20px; text-align: center;">📊 Resumen General</h4>
+                <div class="row text-center">
+                    <div class="col-md-3 resumen-item">
+                        <div class="resumen-label">TOTAL EFECTIVO</div>
+                        <div class="resumen-valor">Bs. ${totalEfectivo.toFixed(2)}</div>
+                        <div class="resumen-detalle">${cantidadEfectivo} ventas</div>
+                    </div>
+                    <div class="col-md-3 resumen-item">
+                        <div class="resumen-label">TOTAL QR</div>
+                        <div class="resumen-valor">Bs. ${totalQR.toFixed(2)}</div>
+                        <div class="resumen-detalle">${cantidadQR} ventas</div>
+                    </div>
+                    <div class="col-md-3 resumen-item">
+                        <div class="resumen-label">TOTAL MIXTO</div>
+                        <div class="resumen-valor">Bs. ${totalMixto.toFixed(2)}</div>
+                        <div class="resumen-detalle">${cantidadMixto} ventas</div>
+                    </div>
+                    <div class="col-md-3 resumen-item">
+                        <div class="resumen-label">TOTAL RECAUDADO</div>
+                        <div class="resumen-valor">Bs. ${totalVentas.toFixed(2)}</div>
+                        <div class="resumen-detalle">${totalPedidos} ventas totales</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLA MÉTODOS DE PAGO -->
+            <div style="margin-top: 30px;">
+                <h4 style="color: #2c3e50; margin-bottom: 15px;">📋 Detalle por Método de Pago</h4>
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <thead>
+                        <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            <th style="padding: 15px; text-align: left; font-weight: bold;">Método de Pago</th>
+                            <th style="padding: 15px; text-align: center; font-weight: bold;">Cantidad de Ventas</th>
+                            <th style="padding: 15px; text-align: right; font-weight: bold;">Monto Total</th>
+                            <th style="padding: 15px; text-align: right; font-weight: bold;">Porcentaje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+
+    // Llenar tabla de métodos de pago
+    const metodos = [
+        { nombre: '💵 Efectivo', monto: totalEfectivo, cantidad: cantidadEfectivo },
+        { nombre: '📱 QR', monto: totalQR, cantidad: cantidadQR },
+        { nombre: '💰 Mixto', monto: totalMixto, cantidad: cantidadMixto }
+    ];
+
+    metodos.forEach(metodo => {
+        if (metodo.monto > 0) {
+            const porcentaje = totalVentas > 0 ? (metodo.monto / totalVentas * 100).toFixed(1) : 0;
+            html += `
+                <tr style="border-bottom: 1px solid #ecf0f1;">
+                    <td style="padding: 12px 15px; font-weight: 500;">${metodo.nombre}</td>
+                    <td style="padding: 12px 15px; text-align: center;">${metodo.cantidad}</td>
+                    <td style="padding: 12px 15px; text-align: right; font-weight: bold; color: #2c3e50;">
+                        Bs. ${metodo.monto.toFixed(2)}
+                    </td>
+                    <td style="padding: 12px 15px; text-align: right; color: #7f8c8d;">
+                        ${porcentaje}%
+                    </td>
+                </tr>
+            `;
+        }
+    });
+
+    html += `
+                    </tbody>
+                    <tfoot>
+                        <tr style="background: #2c3e50; color: white; font-weight: bold;">
+                            <td style="padding: 15px; text-align: left;">TOTAL GENERAL</td>
+                            <td style="padding: 15px; text-align: center;">${totalPedidos}</td>
+                            <td style="padding: 15px; text-align: right;">Bs. ${totalVentas.toFixed(2)}</td>
+                            <td style="padding: 15px; text-align: right;">100%</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+    `;
+
+    <!-- VENTAS POR TURNO (SOLO PARA DÍA ESPECÍFICO) -->
+    if (ventas_turno.length > 0 && filtros.periodo === 'dia') {
+        html += `
+            <div style="margin-top: 30px;">
+                <h4 style="color: #2c3e50; margin-bottom: 15px;">🕐 Ventas por Turno</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+        `;
+
+        ventas_turno.forEach(turno => {
+            const icono = turno.turno === 'mañana' ? '🌅' : '🌙';
+            const nombreTurno = turno.turno === 'mañana' ? 'TURNO MAÑANA' : 'TURNO NOCHE';
+            const color = turno.turno === 'mañana' ? '#e67e22' : '#9b59b6';
+            
+            html += `
+                <div style="background: ${color}; color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">${icono}</div>
+                    <div style="font-weight: bold; margin-bottom: 5px;">${nombreTurno}</div>
+                    <div style="font-size: 1.8rem; font-weight: bold; margin-bottom: 5px;">
+                        Bs. ${parseFloat(turno.total_ventas || 0).toFixed(2)}
+                    </div>
+                    <div style="font-size: 0.9rem; opacity: 0.9;">
+                        ${turno.cantidad_pedidos || 0} pedidos
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div></div>`;
+    }
+
+    <!-- VENTAS DIARIAS DETALLADAS (PARA SEMANA, MES Y RANGO) -->
+    if (ventas_diarias.length > 0 && filtros.periodo !== 'dia') {
+        html += `
+            <div style="margin-top: 30px;">
+                <h4 style="color: #2c3e50; margin-bottom: 15px;">📅 Ventas Diarias Detalladas</h4>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+        `;
+
+        // Agrupar por fecha
+        const ventasPorFecha = {};
+        ventas_diarias.forEach(venta => {
+            if (!ventasPorFecha[venta.fecha]) {
+                ventasPorFecha[venta.fecha] = [];
+            }
+            ventasPorFecha[venta.fecha].push(venta);
+        });
+
+        Object.keys(ventasPorFecha).sort().forEach(fecha => {
+            const ventasDia = ventasPorFecha[fecha];
+            const fechaObj = new Date(fecha + 'T00:00:00');
+            const nombreDia = fechaObj.toLocaleDateString('es-ES', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+            
+            const totalDia = ventasDia.reduce((sum, v) => sum + parseFloat(v.total_ventas || 0), 0);
+            const pedidosDia = ventasDia.reduce((sum, v) => sum + parseInt(v.cantidad_pedidos || 0), 0);
+
+            html += `
+                <div style="background: white; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #3498db;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <strong style="color: #2c3e50;">${nombreDia}</strong>
+                        <div style="text-align: right;">
+                            <span style="color: #27ae60; font-weight: bold; font-size: 1.2rem;">
+                                Bs. ${totalDia.toFixed(2)}
+                            </span>
+                            <div style="color: #7f8c8d; font-size: 0.9rem;">
+                                ${pedidosDia} pedidos
                             </div>
                         </div>
                     </div>
             `;
-            
-            // Si no hay datos
-            if (detalle.length === 0) {
-                html += `
-                    <div class="caja-status" style="border-color: #95a5a6; margin-top: 20px;">
-                        <div class="status-icon">📭</div>
-                        <div class="status-text" style="color: #95a5a6;">NO HAY DATOS</div>
-                        <p style="color: #7f8c8d; font-size: 1.1rem;">No se encontraron ventas para los filtros seleccionados</p>
-                    </div>
-                `;
-            } else {
-                // Agrupar por turno
-                const porTurno = {};
-                detalle.forEach(item => {
-                    if (!porTurno[item.turno]) {
-                        porTurno[item.turno] = [];
-                    }
-                    porTurno[item.turno].push(item);
-                });
-                
-                // Mostrar por turno
-                Object.keys(porTurno).forEach(turno => {
-                    const itemsTurno = porTurno[turno];
-                    const totalTurno = itemsTurno.reduce((sum, item) => sum + parseFloat(item.total_ventas), 0);
-                    const totalPedidosTurno = itemsTurno.reduce((sum, item) => sum + parseInt(item.total_pedidos), 0);
-                    
-                    const icono = turno === 'mañana' ? '🌅' : '🌙';
-                    const nombreTurno = turno === 'mañana' ? 'TURNO MAÑANA (12:00 - 16:00)' : 'TURNO NOCHE (19:00 - 00:00)';
-                    const colorTurno = turno === 'mañana' ? '#e67e22' : '#9b59b6';
-                    
+
+            // Mostrar detalle por turno dentro del día
+            if (ventasDia.length > 1) {
+                html += `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ecf0f1;">`;
+                ventasDia.forEach(venta => {
+                    const iconoTurno = venta.turno === 'mañana' ? '🌅' : '🌙';
                     html += `
-                        <div class="reporte-turno" style="border-left-color: ${colorTurno};">
-                            <h5 style="color: ${colorTurno}; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                                ${icono} ${nombreTurno}
-                            </h5>
-                            
-                            <div style="display: flex; justify-content: space-between; background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                                <div>
-                                    <strong style="color: #2c3e50;">Ventas Totales:</strong>
-                                    <span style="color: #27ae60; font-weight: bold; font-size: 1.2rem; margin-left: 10px;">
-                                        Bs. ${totalTurno.toFixed(2)}
-                                    </span>
-                                </div>
-                                <div>
-                                    <strong style="color: #2c3e50;">Total Pedidos:</strong>
-                                    <span style="color: #3498db; font-weight: bold; font-size: 1.2rem; margin-left: 10px;">
-                                        ${totalPedidosTurno}
-                                    </span>
-                                </div>
-                            </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem;">
+                            <span>${iconoTurno} ${venta.turno === 'mañana' ? 'Mañana' : 'Noche'}</span>
+                            <span>Bs. ${parseFloat(venta.total_ventas || 0).toFixed(2)} (${venta.cantidad_pedidos || 0} pedidos)</span>
+                        </div>
                     `;
-                    
-                    // Detalle por cajero en el turno
-                    html += `<div style="margin-top: 10px;"><strong>Desglose por Cajero:</strong></div>`;
-                    itemsTurno.forEach(item => {
-                        html += `
-                            <div class="reporte-cajero">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <div>
-                                        <strong>${item.cajero_nombre}</strong>
-                                    </div>
-                                    <div style="text-align: right;">
-                                        <div style="color: #27ae60; font-weight: bold; font-size: 1.1rem;">
-                                            Bs. ${parseFloat(item.total_ventas).toFixed(2)}
-                                        </div>
-                                        <div style="color: #7f8c8d; font-size: 0.9rem;">
-                                            ${item.total_pedidos} pedido(s)
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    html += `</div>`;
                 });
-                
-                // Resumen por cajero (todos los turnos)
-                if (detalle.length > 0) {
-                    html += `
-                        <div class="reporte-detalle">
-                            <h5 style="color: #2c3e50; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                                👤 Resumen por Cajero
-                            </h5>
-                    `;
-                    
-                    // Agrupar por cajero (sumar todos los turnos)
-                    const porCajero = {};
-                    detalle.forEach(item => {
-                        if (!porCajero[item.cajero_id]) {
-                            porCajero[item.cajero_id] = {
-                                nombre: item.cajero_nombre,
-                                total_ventas: 0,
-                                total_pedidos: 0
-                            };
-                        }
-                        porCajero[item.cajero_id].total_ventas += parseFloat(item.total_ventas);
-                        porCajero[item.cajero_id].total_pedidos += parseInt(item.total_pedidos);
-                    });
-                    
-                    // Ordenar por total de ventas (mayor a menor)
-                    const cajerosOrdenados = Object.values(porCajero).sort((a, b) => b.total_ventas - a.total_ventas);
-                    
-                    cajerosOrdenados.forEach((cajero, index) => {
-                        const top3 = index < 3 ? '🏆 ' : '';
-                        html += `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; margin: 8px 0; border-radius: 8px; border-left: 4px solid #3498db;">
-                                <div style="font-weight: bold; color: #2c3e50;">
-                                    ${top3}${cajero.nombre}
-                                </div>
-                                <div style="text-align: right;">
-                                    <div style="color: #27ae60; font-weight: bold;">
-                                        Bs. ${cajero.total_ventas.toFixed(2)}
-                                    </div>
-                                    <div style="color: #7f8c8d; font-size: 0.9rem;">
-                                        ${cajero.total_pedidos} pedidos
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    html += `</div>`;
-                }
+                html += `</div>`;
             }
-            
+
             html += `</div>`;
-            
-            document.getElementById('resultadoReporte').innerHTML = html;
+        });
+
+        html += `</div></div>`;
+    }
+
+    <!-- VENTAS POR CAJERO -->
+    if (ventas_cajero.length > 0) {
+        html += `
+            <div style="margin-top: 30px;">
+                <h4 style="color: #2c3e50; margin-bottom: 15px;">👤 Ventas por Cajero</h4>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+        `;
+
+        ventas_cajero.forEach(cajero => {
+            html += `
+                <div style="background: white; padding: 15px; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    <div>
+                        <strong>${cajero.cajero_nombre}</strong>
+                        <div style="color: #7f8c8d; font-size: 0.9rem; margin-top: 5px;">
+                            ID: ${cajero.cajero_id}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="color: #27ae60; font-weight: bold; font-size: 1.2rem;">
+                            Bs. ${parseFloat(cajero.total_ventas || 0).toFixed(2)}
+                        </div>
+                        <div style="color: #7f8c8d; font-size: 0.9rem;">
+                            ${cajero.cantidad_pedidos || 0} pedidos
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div></div>`;
+    }
+
+    <!-- RESUMEN DEL PERIODO -->
+    if (resumen && resumen.fecha_inicio && resumen.fecha_fin) {
+        const diasReporte = Math.ceil((new Date(resumen.fecha_fin) - new Date(resumen.fecha_inicio)) / (1000 * 60 * 60 * 24)) + 1;
+        
+        html += `
+            <div style="margin-top: 30px;">
+                <h4 style="color: #2c3e50; margin-bottom: 15px;">📊 Resumen del Período</h4>
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 12px; text-align: center;">
+                    <div style="font-size: 1.3rem; margin-bottom: 10px;">TOTAL DEL PERÍODO SELECCIONADO</div>
+                    <div style="font-size: 2.5rem; font-weight: bold; margin-bottom: 10px;">
+                        Bs. ${parseFloat(resumen.total_ventas || 0).toFixed(2)}
+                    </div>
+                    <div style="font-size: 1.1rem;">
+                        ${resumen.total_pedidos || 0} pedidos en ${diasReporte} días | ${resumen.total_cajeros || 0} cajeros
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    <!-- BOTONES DE ACCIÓN -->
+    html += `
+            <div style="text-align: center; margin-top: 30px; padding: 20px;">
+                <button onclick="exportarExcel()" class="btn-abrir-caja" style="width: auto; padding: 12px 25px; font-size: 1rem; background: #27ae60;">
+                    📊 Exportar a Excel
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('resultadoReporte').innerHTML = html;
+}
+
+//Fin mostrarResultadoReporte
+function mostrarErrorReporte(mensaje) {
+    document.getElementById('resultadoReporte').innerHTML = `
+        <div class="caja-status" style="border-color: #e74c3c;">
+            <div class="status-icon">❌</div>
+            <div class="status-text" style="color: #e74c3c;">ERROR</div>
+            <p style="color: #7f8c8d; font-size: 1.1rem;">${mensaje}</p>
+        </div>
+    `;
+}
+
+function exportarReporte() {
+    alert('La función de exportación a PDF está deshabilitada según su solicitud.');
+}
+// Filtros nuevos y dinamicos
+// FUNCIONES PARA FILTROS DINÁMICOS
+function cambiarPeriodo() {
+    const periodo = document.getElementById('filtroPeriodo').value;
+    
+    // Ocultar todos los filtros
+    document.getElementById('filtroDia').style.display = 'none';
+    document.getElementById('filtroSemana').style.display = 'none';
+    document.getElementById('filtroMes').style.display = 'none';
+    document.getElementById('filtroRango').style.display = 'none';
+    
+    // Mostrar solo el filtro seleccionado
+    document.getElementById('filtro' + periodo.charAt(0).toUpperCase() + periodo.slice(1)).style.display = 'block';
+}
+
+// FUNCIÓN GENERAR REPORTE MEJORADA
+function generarReporte() {
+    const periodo = document.getElementById('filtroPeriodo').value;
+    const cajero = document.getElementById('filtroCajero').value;
+    
+    let fecha, turno, fechaInicio, fechaFin;
+    
+    // Obtener parámetros según el período seleccionado
+    switch(periodo) {
+        case 'dia':
+            fecha = document.getElementById('filtroFecha').value;
+            turno = document.getElementById('filtroTurno').value;
+            break;
+        case 'semana':
+            fecha = document.getElementById('filtroFechaSemana').value;
+            turno = document.getElementById('filtroTurnoSemana').value;
+            break;
+        case 'mes':
+            fecha = document.getElementById('filtroMesSeleccionado').value;
+            turno = document.getElementById('filtroTurnoMes').value;
+            break;
+        case 'rango':
+            fechaInicio = document.getElementById('filtroFechaInicio').value;
+            fechaFin = document.getElementById('filtroFechaFin').value;
+            turno = document.getElementById('filtroTurnoRango').value;
+            break;
+    }
+    
+    if ((periodo === 'rango' && (!fechaInicio || !fechaFin)) || 
+        (periodo !== 'rango' && !fecha)) {
+        alert('Por favor complete todos los campos requeridos');
+        return;
+    }
+    
+    // Mostrar loading
+    document.getElementById('resultadoReporte').innerHTML = `
+        <div style="text-align: center; padding: 40px;">
+            <div class="spinner-reporte"></div>
+            <p style="margin-top: 15px; color: #667eea; font-size: 1.1rem;">Generando reporte...</p>
+        </div>
+    `;
+    
+    const formData = new FormData();
+    formData.append('periodo', periodo);
+    formData.append('cajero_id', cajero);
+    formData.append('turno', turno);
+    
+    if (periodo === 'rango') {
+        formData.append('fecha_inicio', fechaInicio);
+        formData.append('fecha_fin', fechaFin);
+    } else {
+        formData.append('fecha', fecha);
+    }
+    
+    fetch('generar_reporte.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarResultadoReporte(data);
+        } else {
+            mostrarErrorReporte('Error: ' + data.message);
         }
-        // fin resultados reporte
+    })
+    .catch(error => {
+        mostrarErrorReporte('Error de conexión: ' + error);
+    });
+}
+// fin de filtros nuevos y dinamicos
+// Inicializar filtros cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    cambiarPeriodo(); // Mostrar filtros iniciales
+});
+//fin de iniciador de filtros
+//Exportar reporte a excel
+function exportarExcel() {
+    // Obtener los datos actuales del reporte
+    const resultadoDiv = document.getElementById('resultadoReporte');
+    const titulo = resultadoDiv.querySelector('h3')?.textContent || 'Reporte de Ventas';
+    const subtitulo = resultadoDiv.querySelector('h4')?.textContent || '';
+    const periodoInfo = resultadoDiv.querySelector('p')?.textContent || '';
+
+    // Preparar datos para CSV
+    let csvData = [];
+    
+    // Encabezados
+    csvData.push([titulo]);
+    csvData.push([subtitulo]);
+    csvData.push([periodoInfo]);
+    csvData.push([]); // Línea vacía
+
+    // Métodos de pago
+    csvData.push(['MÉTODOS DE PAGO']);
+    csvData.push(['Método', 'Cantidad de Ventas', 'Monto Total', 'Porcentaje']);
+    
+    const metodosRows = resultadoDiv.querySelectorAll('table tbody tr');
+    metodosRows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 4) {
+            const metodo = cells[0].textContent.trim();
+            const cantidad = cells[1].textContent.trim();
+            const monto = cells[2].textContent.trim();
+            const porcentaje = cells[3].textContent.trim();
+            csvData.push([metodo, cantidad, monto, porcentaje]);
+        }
+    });
+
+    // Total general
+    const totalRow = resultadoDiv.querySelector('table tfoot tr');
+    if (totalRow) {
+        const totalCells = totalRow.querySelectorAll('td');
+        csvData.push([]);
+        csvData.push([
+            totalCells[0]?.textContent.trim() || 'TOTAL GENERAL',
+            totalCells[1]?.textContent.trim() || '',
+            totalCells[2]?.textContent.trim() || '',
+            totalCells[3]?.textContent.trim() || ''
+        ]);
+    }
+
+    csvData.push([]); // Línea vacía
+
+    // Ventas por turno (si existen)
+    const ventasTurnoSection = resultadoDiv.querySelector('div h4');
+    if (ventasTurnoSection && ventasTurnoSection.textContent.includes('Turno')) {
+        const turnoSection = ventasTurnoSection.closest('div');
+        const turnoCards = turnoSection?.querySelectorAll('div > div');
+        
+        if (turnoCards && turnoCards.length > 0) {
+            csvData.push(['VENTAS POR TURNO']);
+            csvData.push(['Turno', 'Monto Total', 'Cantidad de Pedidos']);
+            
+            turnoCards.forEach(card => {
+                const turnoText = card.querySelector('div:nth-child(2)')?.textContent.trim();
+                const montoText = card.querySelector('div:nth-child(3)')?.textContent.trim();
+                const pedidosText = card.querySelector('div:nth-child(4)')?.textContent.trim();
+                
+                if (turnoText && montoText) {
+                    csvData.push([turnoText, montoText, pedidosText || '0']);
+                }
+            });
+            csvData.push([]);
+        }
+    }
+
+    // Ventas por cajero (si existen)
+    const ventasCajeroSection = Array.from(resultadoDiv.querySelectorAll('h4'))
+        .find(h4 => h4.textContent.includes('Cajero'));
+    
+    if (ventasCajeroSection) {
+        const cajeroSection = ventasCajeroSection.closest('div');
+        const cajeroCards = cajeroSection?.querySelectorAll('div > div');
+        
+        if (cajeroCards && cajeroCards.length > 0) {
+            csvData.push(['VENTAS POR CAJERO']);
+            csvData.push(['Cajero', 'Monto Total', 'Cantidad de Pedidos']);
+            
+            cajeroCards.forEach(card => {
+                const nombreCajero = card.querySelector('strong')?.textContent.trim();
+                const montoTotal = card.querySelector('div > div:nth-child(1)')?.textContent.trim();
+                const cantidadPedidos = card.querySelector('div > div:nth-child(2)')?.textContent.trim();
+                
+                if (nombreCajero && montoTotal) {
+                    csvData.push([nombreCajero, montoTotal, cantidadPedidos || '0']);
+                }
+            });
+            csvData.push([]);
+        }
+    }
+
+    // Ventas diarias (si existen)
+    const ventasDiariasSection = Array.from(resultadoDiv.querySelectorAll('h4'))
+        .find(h4 => h4.textContent.includes('Diarias'));
+    
+    if (ventasDiariasSection) {
+        const diariasSection = ventasDiariasSection.closest('div');
+        const diasCards = diariasSection?.querySelectorAll('div > div');
+        
+        if (diasCards && diasCards.length > 0) {
+            csvData.push(['VENTAS DIARIAS']);
+            csvData.push(['Fecha', 'Monto Total', 'Cantidad de Pedidos']);
+            
+            diasCards.forEach(card => {
+                const fechaText = card.querySelector('strong')?.textContent.trim();
+                const montoText = card.querySelector('span')?.textContent.trim();
+                
+                if (fechaText && montoText) {
+                    // Extraer solo el monto del texto
+                    const monto = montoText.split('Bs.')[1]?.split('(')[0]?.trim() || montoText;
+                    const pedidos = montoText.split('(')[1]?.split('pedidos')[0]?.trim() || '0';
+                    csvData.push([fechaText, `Bs. ${monto}`, pedidos]);
+                }
+            });
+            csvData.push([]);
+        }
+    }
+
+    // Resumen del período (si existe)
+    const resumenSection = Array.from(resultadoDiv.querySelectorAll('h4'))
+        .find(h4 => h4.textContent.includes('Resumen'));
+    
+    if (resumenSection) {
+        const resumenDiv = resumenSection.closest('div');
+        const totalText = resumenDiv?.querySelector('div:nth-child(2)')?.textContent.trim();
+        const detalleText = resumenDiv?.querySelector('div:nth-child(3)')?.textContent.trim();
+        
+        if (totalText && detalleText) {
+            csvData.push(['RESUMEN DEL PERÍODO']);
+            csvData.push(['Total General', totalText]);
+            csvData.push(['Detalle', detalleText]);
+        }
+    }
+
+    // Generar archivo CSV
+    const csvContent = csvData.map(row => 
+        row.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(',')
+    ).join('\n');
+
+    // Crear y descargar archivo
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    // Nombre del archivo con fecha
+    const fecha = new Date().toISOString().slice(0, 10);
+    const nombreArchivo = `reporte_ventas_${fecha}.csv`;
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', nombreArchivo);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Mostrar confirmación
+    alert('✅ Reporte exportado a Excel exitosamente');
+}
+// fin de exportar reporte a excel
                 // Debug para mesas
         console.log('Funciones de mesas cargadas correctamente');
         console.log('editarMesa function:', typeof editarMesa);

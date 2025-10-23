@@ -416,6 +416,170 @@ $roles_nombres = [
                 font-size: 0.75rem;
             }
         }
+        /* ESTILOS PARA REPORTES (COPIADOS DE CAJERO) */
+.caja-status {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.caja-cerrada {
+    border: 3px solid #e74c3c;
+}
+
+.caja-abierta {
+    border: 3px solid #27ae60;
+}
+
+.status-icon {
+    font-size: 4rem;
+    margin-bottom: 15px;
+}
+
+.status-text {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.caja-info {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.cantidad-input {
+    width: 100%;
+    padding: 10px;
+    font-size: 1.1rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.btn-abrir-caja {
+    width: 100%;
+    padding: 18px;
+    font-size: 1.4rem;
+    font-weight: bold;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s;
+}
+
+.btn-abrir-caja:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* ESTILOS PARA REPORTES */
+.reporte-resumen {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.reporte-turno {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border-left: 5px solid #3498db;
+}
+
+.reporte-cajero {
+    background: white;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.reporte-detalle {
+    background: #fff3cd;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #ffeaa7;
+}
+
+.resumen-item {
+    text-align: center;
+    padding: 15px;
+}
+
+.resumen-valor {
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+.resumen-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.resumen-detalle {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-top: 5px;
+}
+
+/* Loading spinner */
+.spinner-reporte {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Mejoras para la tabla */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+tfoot {
+    background: #2c3e50;
+    color: white;
+    font-weight: bold;
+}
     </style>
 </head>
 <body>
@@ -516,21 +680,213 @@ $roles_nombres = [
                     <?php endif; ?>
                 </div>
             </div>
+             <!-- SECCIÓN REPORTES -->
+<div class="section-content" id="section-reportes">
+    <h2 style="margin-bottom: 20px; color: #2c3e50;">📊 Reportes de Ventas</h2>
+    
+    <!-- FILTROS MEJORADOS -->
+    <div class="caja-info" style="margin-bottom: 20px;">
+        <div class="form-header" style="margin-bottom: 20px;">
+            <h4>🔍 Filtros Avanzados del Reporte</h4>
+            <p style="color: #7f8c8d; margin: 0;">Seleccione el período y criterios para el reporte</p>
+        </div>
+        
+        <!-- SELECTOR DE PERÍODO -->
+        <div style="margin-bottom: 20px;">
+            <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">
+                📅 Período del Reporte
+            </label>
+            <select class="cantidad-input" id="filtroPeriodo" onchange="cambiarPeriodo()">
+                <option value="dia">📊 Por Día (Específico)</option>
+                <option value="semana">📅 Por Semana (Completa)</option>
+                <option value="mes">🗓️ Por Mes (Completo)</option>
+                <option value="rango">📆 Por Rango Personalizado</option>
+            </select>
+        </div>
 
-            <!-- SECCIÓN REPORTES -->
-            <div class="section-content" id="section-reportes">
-                <div class="content-card">
-                    <div class="card-header">
-                        <h2 class="card-title">📊 Reportes</h2>
+        <!-- FILTROS DINÁMICOS SEGÚN PERIODO -->
+        <div id="filtrosDinamicos">
+            <!-- POR DÍA -->
+            <div class="row" id="filtroDia">
+                <div class="col-md-6 mb-3">
+                    <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">📅 Fecha Específica</label>
+                    <input type="date" class="cantidad-input" id="filtroFecha" value="<?php echo date('Y-m-d'); ?>">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">🕐 Turno</label>
+                    <select class="cantidad-input" id="filtroTurno">
+                        <option value="todos">Todos los turnos</option>
+                        <option value="mañana">🌅 Turno Mañana</option>
+                        <option value="noche">🌙 Turno Noche</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- POR SEMANA -->
+            <div class="row" id="filtroSemana" style="display: none;">
+                <div class="col-md-6 mb-3">
+                    <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">📅 Semana del</label>
+                    <input type="date" class="cantidad-input" id="filtroFechaSemana" value="<?php echo date('Y-m-d'); ?>">
+                    <small style="color: #7f8c8d; margin-top: 5px; display: block;">
+                        Se mostrará la semana completa (lunes a domingo)
+                    </small>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">🕐 Filtro por Turno</label>
+                    <select class="cantidad-input" id="filtroTurnoSemana">
+                        <option value="todos">Todos los turnos</option>
+                        <option value="mañana">Solo turno mañana</option>
+                        <option value="noche">Solo turno noche</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- POR MES -->
+            <div class="row" id="filtroMes" style="display: none;">
+                <div class="col-md-6 mb-3">
+                    <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">🗓️ Mes</label>
+                    <input type="month" class="cantidad-input" id="filtroMesSeleccionado" value="<?php echo date('Y-m'); ?>">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">🕐 Filtro por Turno</label>
+                    <select class="cantidad-input" id="filtroTurnoMes">
+                        <option value="todos">Todos los turnos</option>
+                        <option value="mañana">Solo turno mañana</option>
+                        <option value="noche">Solo turno noche</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- POR RANGO -->
+            <div class="row" id="filtroRango" style="display: none;">
+                <div class="col-md-6 mb-3">
+                    <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">📅 Fecha Inicio</label>
+                    <input type="date" class="cantidad-input" id="filtroFechaInicio" value="<?php echo date('Y-m-01'); ?>">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">📅 Fecha Fin</label>
+                    <input type="date" class="cantidad-input" id="filtroFechaFin" value="<?php echo date('Y-m-d'); ?>">
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">🕐 Filtro por Turno</label>
+                    <select class="cantidad-input" id="filtroTurnoRango">
+                        <option value="todos">Todos los turnos</option>
+                        <option value="mañana">Solo turno mañana</option>
+                        <option value="noche">Solo turno noche</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTRO CAJERO (SIEMPRE VISIBLE) -->
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label style="font-weight: bold; margin-bottom: 8px; display: block; color: #2c3e50;">👤 Cajero</label>
+                <select class="cantidad-input" id="filtroCajero">
+                    <option value="todos">Todos los cajeros</option>
+                    <?php
+                    $stmt_cajeros = $pdo->prepare("SELECT id, nombre FROM usuarios WHERE rol = 'cajero' ORDER BY nombre");
+                    $stmt_cajeros->execute();
+                    $cajeros = $stmt_cajeros->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($cajeros as $cajero) {
+                        echo "<option value='{$cajero['id']}'>{$cajero['nombre']}</option>";
+                    }
+                    ?>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3" style="display: flex; align-items: end;">
+                <button type="button" class="btn-abrir-caja" onclick="generarReporte()" style="width: 100%;">
+                    📈 GENERAR REPORTE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESULTADOS DEL REPORTE -->
+    <div id="resultadoReporte">
+        <div class="caja-status" style="border-color: #3498db;">
+            <div class="status-icon">📊</div>
+            <div class="status-text" style="color: #3498db;">REPORTES DE VENTAS</div>
+            <p style="color: #7f8c8d; font-size: 1.1rem;">Seleccione los filtros y genere un reporte</p>
+            <p style="color: #95a5a6; font-size: 0.9rem;">Los resultados aparecerán aquí</p>
+        </div>
+    </div>
+
+    <!-- PLANTILLA PARA REPORTE DETALLADO (oculta inicialmente) -->
+    <div id="plantillaReporteDetallado" style="display: none;">
+        <div class="caja-info">
+            <h3 style="color: #2c3e50; margin-bottom: 20px; text-align: center; text-transform: uppercase;">
+                📈 Reporte Detallado de Ventas - <span class="fecha-reporte"></span>
+            </h3>
+            
+            <!-- RESUMEN GENERAL -->
+            <div class="reporte-resumen">
+                <h4 style="margin-bottom: 20px; text-align: center;">📊 Resumen General</h4>
+                <div class="row text-center">
+                    <div class="col-md-3 resumen-item">
+                        <div class="resumen-label">TOTAL EFECTIVO</div>
+                        <div class="resumen-valor" id="resumenEfectivo">Bs. 0.00</div>
+                        <div class="resumen-detalle" id="detalleEfectivo">0 ventas</div>
                     </div>
-                    <div class="empty-state">
-                        <div class="empty-icon">📊</div>
-                        <h3>Sección de Reportes</h3>
-                        <p>Esta sección estará disponible próximamente</p>
+                    <div class="col-md-3 resumen-item">
+                        <div class="resumen-label">TOTAL QR</div>
+                        <div class="resumen-valor" id="resumenQR">Bs. 0.00</div>
+                        <div class="resumen-detalle" id="detalleQR">0 ventas</div>
+                    </div>
+                    <div class="col-md-3 resumen-item">
+                        <div class="resumen-label">TOTAL MIXTO</div>
+                        <div class="resumen-valor" id="resumenMixto">Bs. 0.00</div>
+                        <div class="resumen-detalle" id="detalleMixto">0 ventas</div>
+                    </div>
+                    <div class="col-md-3 resumen-item">
+                        <div class="resumen-label">TOTAL RECAUDADO</div>
+                        <div class="resumen-valor" id="resumenTotal">Bs. 0.00</div>
+                        <div class="resumen-detalle" id="detalleTotal">0 ventas totales</div>
                     </div>
                 </div>
             </div>
 
+            <!-- TABLA DETALLADA -->
+            <div style="margin-top: 30px;">
+                <h4 style="color: #2c3e50; margin-bottom: 15px;">📋 Detalle por Método de Pago</h4>
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <thead>
+                        <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            <th style="padding: 15px; text-align: left; font-weight: bold;">Método de Pago</th>
+                            <th style="padding: 15px; text-align: center; font-weight: bold;">Cantidad de Ventas</th>
+                            <th style="padding: 15px; text-align: right; font-weight: bold;">Monto Total</th>
+                            <th style="padding: 15px; text-align: right; font-weight: bold;">Porcentaje</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaMetodosPago">
+                        <!-- Los datos se llenarán dinámicamente -->
+                    </tbody>
+                    <tfoot>
+                        <tr style="background: #2c3e50; color: white; font-weight: bold;">
+                            <td style="padding: 15px; text-align: left;">TOTAL GENERAL</td>
+                            <td style="padding: 15px; text-align: center;" id="totalVentas">0</td>
+                            <td style="padding: 15px; text-align: right;" id="totalMonto">Bs. 0.00</td>
+                            <td style="padding: 15px; text-align: right;">100%</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- DETALLE POR TURNO Y CAJERO -->
+            <div id="detalleTurnos" style="margin-top: 30px;">
+                <!-- Se llenará dinámicamente -->
+            </div>
+
+            <!-- BOTONES DE ACCIÓN -->
+            <div style="text-align: center; margin-top: 30px; padding: 20px;">
+                <button onclick="exportarExcel()" class="btn-abrir-caja" style="width: auto; padding: 12px 25px; font-size: 1rem; background: #27ae60;">
+                    📊 Exportar a Excel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+            <!--Fin de SECCIÓN REPORTES -->
             <!-- SECCIÓN MENÚ -->
             <div class="section-content" id="section-menu">
                 <div class="content-card">
@@ -709,6 +1065,297 @@ $roles_nombres = [
                 alert('❌ Error de conexión: ' + error);
             });
         }
+        // FUNCIONES PARA REPORTES
+function cambiarPeriodo() {
+    const periodo = document.getElementById('filtroPeriodo').value;
+    
+    // Ocultar todos los filtros
+    document.getElementById('filtroDia').style.display = 'none';
+    document.getElementById('filtroSemana').style.display = 'none';
+    document.getElementById('filtroMes').style.display = 'none';
+    document.getElementById('filtroRango').style.display = 'none';
+    
+    // Mostrar solo el filtro seleccionado
+    document.getElementById('filtro' + periodo.charAt(0).toUpperCase() + periodo.slice(1)).style.display = 'block';
+}
+
+// FUNCIÓN GENERAR REPORTE MEJORADA
+function generarReporte() {
+    const periodo = document.getElementById('filtroPeriodo').value;
+    const cajero = document.getElementById('filtroCajero').value;
+    
+    let fecha, turno, fechaInicio, fechaFin;
+    
+    // Obtener parámetros según el período seleccionado
+    switch(periodo) {
+        case 'dia':
+            fecha = document.getElementById('filtroFecha').value;
+            turno = document.getElementById('filtroTurno').value;
+            break;
+        case 'semana':
+            fecha = document.getElementById('filtroFechaSemana').value;
+            turno = document.getElementById('filtroTurnoSemana').value;
+            break;
+        case 'mes':
+            fecha = document.getElementById('filtroMesSeleccionado').value;
+            turno = document.getElementById('filtroTurnoMes').value;
+            break;
+        case 'rango':
+            fechaInicio = document.getElementById('filtroFechaInicio').value;
+            fechaFin = document.getElementById('filtroFechaFin').value;
+            turno = document.getElementById('filtroTurnoRango').value;
+            break;
+    }
+    
+    if ((periodo === 'rango' && (!fechaInicio || !fechaFin)) || 
+        (periodo !== 'rango' && !fecha)) {
+        alert('Por favor complete todos los campos requeridos');
+        return;
+    }
+    
+    // Mostrar loading
+    document.getElementById('resultadoReporte').innerHTML = `
+        <div style="text-align: center; padding: 40px;">
+            <div class="spinner-reporte"></div>
+            <p style="margin-top: 15px; color: #667eea; font-size: 1.1rem;">Generando reporte...</p>
+        </div>
+    `;
+    
+    const formData = new FormData();
+    formData.append('periodo', periodo);
+    formData.append('cajero_id', cajero);
+    formData.append('turno', turno);
+    
+    if (periodo === 'rango') {
+        formData.append('fecha_inicio', fechaInicio);
+        formData.append('fecha_fin', fechaFin);
+    } else {
+        formData.append('fecha', fecha);
+    }
+    
+    fetch('generar_reporte.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarResultadoReporte(data);
+        } else {
+            mostrarErrorReporte('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        mostrarErrorReporte('Error de conexión: ' + error);
+    });
+}
+
+// FUNCIÓN PARA MOSTRAR RESULTADO DEL REPORTE (COMPLETA)
+function mostrarResultadoReporte(data) {
+    const plantilla = document.getElementById('plantillaReporteDetallado').innerHTML;
+    const fechaReporte = obtenerTextoFecha(data.fecha_inicio, data.fecha_fin, data.periodo);
+    
+    let html = plantilla;
+    document.getElementById('resultadoReporte').innerHTML = html;
+    
+    // Actualizar fecha del reporte
+    document.querySelector('.fecha-reporte').textContent = fechaReporte;
+    
+    // Actualizar resumen general
+    document.getElementById('resumenEfectivo').textContent = `Bs. ${formatearNumero(data.totales.efectivo)}`;
+    document.getElementById('resumenQR').textContent = `Bs. ${formatearNumero(data.totales.qr)}`;
+    document.getElementById('resumenMixto').textContent = `Bs. ${formatearNumero(data.totales.mixto)}`;
+    document.getElementById('resumenTotal').textContent = `Bs. ${formatearNumero(data.totales.general)}`;
+    
+    document.getElementById('detalleEfectivo').textContent = `${data.cantidades.efectivo} ventas`;
+    document.getElementById('detalleQR').textContent = `${data.cantidades.qr} ventas`;
+    document.getElementById('detalleMixto').textContent = `${data.cantidades.mixto} ventas`;
+    document.getElementById('detalleTotal').textContent = `${data.cantidades.general} ventas totales`;
+    
+    // Actualizar tabla de métodos de pago
+    actualizarTablaMetodosPago(data.totales, data.cantidades);
+    
+    // Actualizar detalle por turnos y cajeros
+    actualizarDetalleTurnos(data.detalle_turnos);
+}
+
+function obtenerTextoFecha(fechaInicio, fechaFin, periodo) {
+    const fechaInicioObj = new Date(fechaInicio);
+    const fechaFinObj = new Date(fechaFin);
+    
+    switch(periodo) {
+        case 'dia':
+            return fechaInicioObj.toLocaleDateString('es-ES', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        case 'semana':
+            return `Semana del ${fechaInicioObj.toLocaleDateString('es-ES')} al ${fechaFinObj.toLocaleDateString('es-ES')}`;
+        case 'mes':
+            return fechaInicioObj.toLocaleDateString('es-ES', { 
+                year: 'numeric', 
+                month: 'long' 
+            });
+        case 'rango':
+            return `Del ${fechaInicioObj.toLocaleDateString('es-ES')} al ${fechaFinObj.toLocaleDateString('es-ES')}`;
+        default:
+            return fechaInicioObj.toLocaleDateString('es-ES');
+    }
+}
+
+function formatearNumero(numero) {
+    return parseFloat(numero).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function actualizarTablaMetodosPago(totales, cantidades) {
+    const totalGeneral = totales.general;
+    const tablaBody = document.getElementById('tablaMetodosPago');
+    
+    const metodos = [
+        { nombre: '💰 Efectivo', monto: totales.efectivo, cantidad: cantidades.efectivo },
+        { nombre: '📱 QR/Pago Digital', monto: totales.qr, cantidad: cantidades.qr },
+        { nombre: '💳 Pago Mixto', monto: totales.mixto, cantidad: cantidades.mixto }
+    ];
+    
+    let html = '';
+    metodos.forEach(metodo => {
+        const porcentaje = totalGeneral > 0 ? ((metodo.monto / totalGeneral) * 100).toFixed(1) : 0;
+        html += `
+            <tr>
+                <td style="padding: 12px 15px;">${metodo.nombre}</td>
+                <td style="padding: 12px 15px; text-align: center;">${metodo.cantidad}</td>
+                <td style="padding: 12px 15px; text-align: right;">Bs. ${formatearNumero(metodo.monto)}</td>
+                <td style="padding: 12px 15px; text-align: right;">${porcentaje}%</td>
+            </tr>
+        `;
+    });
+    
+    tablaBody.innerHTML = html;
+    document.getElementById('totalVentas').textContent = cantidades.general;
+    document.getElementById('totalMonto').textContent = `Bs. ${formatearNumero(totalGeneral)}`;
+}
+
+function actualizarDetalleTurnos(detalleTurnos) {
+    const contenedor = document.getElementById('detalleTurnos');
+    
+    if (!detalleTurnos || detalleTurnos.length === 0) {
+        contenedor.innerHTML = `
+            <div style="text-align: center; padding: 30px; background: #f8f9fa; border-radius: 10px;">
+                <p style="color: #7f8c8d; font-size: 1.1rem;">No hay datos detallados por turno para este período</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '<h4 style="color: #2c3e50; margin-bottom: 20px;">🕐 Detalle por Turnos y Cajeros</h4>';
+    
+    detalleTurnos.forEach(turno => {
+        html += `
+            <div class="reporte-turno">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h5 style="margin: 0; color: #2c3e50;">
+                        ${turno.turno === 'mañana' ? '🌅 Turno Mañana' : '🌙 Turno Noche'} 
+                        - ${turno.fecha}
+                    </h5>
+                    <span style="font-weight: bold; color: #27ae60;">Bs. ${formatearNumero(turno.total)}</span>
+                </div>
+        `;
+        
+        if (turno.cajeros && turno.cajeros.length > 0) {
+            turno.cajeros.forEach(cajero => {
+                html += `
+                    <div class="reporte-cajero">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>👤 ${cajero.nombre}</strong>
+                                <small style="color: #7f8c8d; margin-left: 10px;">
+                                    ${cajero.total_ventas} ventas
+                                </small>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: bold; color: #2c3e50;">
+                                    Bs. ${formatearNumero(cajero.total)}
+                                </div>
+                                <small style="color: #95a5a6;">
+                                    Efectivo: Bs. ${formatearNumero(cajero.efectivo)} | 
+                                    QR: Bs. ${formatearNumero(cajero.qr)} |
+                                    Mixto: Bs. ${formatearNumero(cajero.mixto)}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            html += `
+                <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                    <p style="color: #7f8c8d; margin: 0;">No hay datos de cajeros para este turno</p>
+                </div>
+            `;
+        }
+        
+        html += `</div>`;
+    });
+    
+    contenedor.innerHTML = html;
+}
+
+function mostrarErrorReporte(mensaje) {
+    document.getElementById('resultadoReporte').innerHTML = `
+        <div class="caja-status" style="border-color: #e74c3c;">
+            <div class="status-icon">❌</div>
+            <div class="status-text" style="color: #e74c3c;">ERROR</div>
+            <p style="color: #7f8c8d; font-size: 1.1rem;">${mensaje}</p>
+        </div>
+    `;
+}
+
+// FUNCIÓN EXPORTAR EXCEL COMPLETA
+function exportarExcel() {
+    const periodo = document.getElementById('filtroPeriodo').value;
+    const cajero = document.getElementById('filtroCajero').value;
+    const turno = obtenerTurnoSeleccionado(periodo);
+    const fecha = obtenerFechaSeleccionada(periodo);
+    const fechaInicio = periodo === 'rango' ? document.getElementById('filtroFechaInicio').value : '';
+    const fechaFin = periodo === 'rango' ? document.getElementById('filtroFechaFin').value : '';
+    
+    let url = `generar_reporte.php?exportar=excel&periodo=${periodo}&cajero_id=${cajero}&turno=${turno}`;
+    
+    if (periodo === 'rango') {
+        url += `&fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`;
+    } else {
+        url += `&fecha=${fecha}`;
+    }
+    
+    window.open(url, '_blank');
+}
+
+function obtenerTurnoSeleccionado(periodo) {
+    switch(periodo) {
+        case 'dia': return document.getElementById('filtroTurno').value;
+        case 'semana': return document.getElementById('filtroTurnoSemana').value;
+        case 'mes': return document.getElementById('filtroTurnoMes').value;
+        case 'rango': return document.getElementById('filtroTurnoRango').value;
+        default: return 'todos';
+    }
+}
+
+function obtenerFechaSeleccionada(periodo) {
+    switch(periodo) {
+        case 'dia': return document.getElementById('filtroFecha').value;
+        case 'semana': return document.getElementById('filtroFechaSemana').value;
+        case 'mes': return document.getElementById('filtroMesSeleccionado').value;
+        default: return '';
+    }
+}
+
+// Inicializar filtros cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    cambiarPeriodo(); // Mostrar filtros iniciales
+});
+        // Fin funciones para reportes
     </script>
 </body>
 </html>
