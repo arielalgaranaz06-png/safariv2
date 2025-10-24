@@ -33,7 +33,7 @@ $roles_nombres = [
         }
         
         .header-bar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(#333333 100%);
             color: white;
             padding: 15px 20px;
             display: flex;
@@ -52,7 +52,7 @@ $roles_nombres = [
         /* SIDEBAR */
         .sidebar {
             width: 250px;
-            background: #2c3e50;
+            background: linear-gradient(to bottom, #424242, #686868);
             color: white;
             transition: all 0.3s;
             position: relative;
