@@ -1,7 +1,7 @@
 <?php
 // DEJA TUS DATOS ORIGINALES AQUÍ - NO LOS CAMBIES
 $host = 'localhost';
-$db   = 'safariv2'; // tu base de datos real
+$db   = 'safari'; // tu base de datos real
 $user = 'root';     // tu usuario real  
 $pass = '';         // tu password real
 $charset = 'utf8mb4';

@@ -10,7 +10,6 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['rol'] != 'cajero') {
 $numero = trim($_POST['numero']);
 $capacidad = intval($_POST['capacidad']);
 $estado = $_POST['estado'];
-$descripcion = trim($_POST['descripcion']);
 
 // Validaciones
 if (empty($numero) || $capacidad <= 0) {
@@ -29,8 +28,8 @@ try {
     }
 
     // Insertar nueva mesa
-    $stmt = $pdo->prepare("INSERT INTO mesas (numero, capacidad, estado, descripcion) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$numero, $capacidad, $estado, $descripcion]);
+    $stmt = $pdo->prepare("INSERT INTO mesas (numero, capacidad, estado) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$numero, $capacidad, $estado]);
 
     echo json_encode(['success' => true, 'message' => 'Mesa creada correctamente']);
 } catch (Exception $e) {

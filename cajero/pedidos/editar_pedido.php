@@ -2,12 +2,19 @@
 session_start();
 require_once '../../db.php';
 
+// HEADERS ANTES DE CUALQUIER OUTPUT
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
+header('Access-Control-Allow-Headers: Content-Type');
 
 if (!isset($_SESSION['usuario_id']) || $_SESSION['rol'] != 'cajero') {
     echo json_encode(['success' => false, 'message' => 'No autorizado']);
     exit;
 }
+
+// LIMPIAR BUFFER POR SI HAY OUTPUT PREVIO
+if (ob_get_length()) ob_clean();
 
 try {
     $input = json_decode(file_get_contents('php://input'), true);
@@ -95,6 +102,12 @@ try {
 } catch (Exception $e) {
     $pdo->rollBack();
     error_log("ERROR EDITAR_PEDIDO: " . $e->getMessage());
+    
+    // Limpiar buffer en caso de error
+    if (ob_get_length()) ob_clean();
+    
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
+
+// NO DEJAR ESPACIOS O SALTOS DE LÍNEA DESPUÉS DE ESTE PUNTO
 ?>

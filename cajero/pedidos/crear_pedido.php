@@ -25,7 +25,17 @@ try {
     }
     
     // Decodificar items
-    $items = json_decode($items_json, true);
+    // Si el frontend envía un array ya (JSON.parse en JS y enviado como application/json),
+    // $items_json llegará como array; si envía una cadena JSON, la decodificamos.
+    if (is_array($items_json)) {
+        $items = $items_json;
+    } else {
+        $items = json_decode($items_json, true);
+    }
+    
+    // Normalizar tipos
+    $mesa_id = intval($mesa_id);
+    $total = floatval($total);
     
     if (!$mesa_id || empty($items)) {
         echo json_encode([

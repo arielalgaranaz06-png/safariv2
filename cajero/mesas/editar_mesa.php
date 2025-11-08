@@ -11,7 +11,6 @@ $id = intval($_POST['id']);
 $numero = trim($_POST['numero']);
 $capacidad = intval($_POST['capacidad']);
 $estado = $_POST['estado'];
-$descripcion = trim($_POST['descripcion']);
 
 // Validaciones
 if (empty($numero) || $capacidad <= 0) {
@@ -31,8 +30,8 @@ try {
     }
 
     // Actualizar mesa
-    $stmt = $pdo->prepare("UPDATE mesas SET numero = ?, capacidad = ?, estado = ?, descripcion = ? WHERE id = ?");
-    $stmt->execute([$numero, $capacidad, $estado, $descripcion, $id]);
+    $stmt = $pdo->prepare("UPDATE mesas SET numero = ?, capacidad = ?, estado = ? WHERE id = ?");
+    $stmt->execute([$numero, $capacidad, $estado, $id]);
 
     echo json_encode(['success' => true, 'message' => 'Mesa actualizada correctamente']);
 } catch (Exception $e) {
