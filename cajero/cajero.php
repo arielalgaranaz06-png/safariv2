@@ -455,7 +455,7 @@ foreach ($todos_productos as $producto) {
         cargarPedidos();
         cargarMesas();
         cargarMesasDisponibles();
-        setInterval(cargarPedidos, 5000); 
+        setInterval(cargarPedidos, 60000); 
     }
 });
             
@@ -463,7 +463,7 @@ foreach ($todos_productos as $producto) {
                 cargarPedidos();
                 cargarMesas();
                 cargarMesasDisponibles();
-                setInterval(cargarPedidos, 5000); 
+                setInterval(cargarPedidos, 60000); 
             }
         });
 
